@@ -10,6 +10,8 @@ import { CrearTurnoUseCase } from './application/use-cases/crear-turno.use-case'
 import { AvanzarTurnoUseCase } from './application/use-cases/avanzar-turno.use-case';
 import { CancelarTurnoUseCase } from './application/use-cases/cancelar-turno.use-case';
 import { ListarTurnosPorPuntoUseCase } from './application/use-cases/listar-turnos-por-punto.use-case';
+import { ListarMisTurnosUseCase } from './application/use-cases/listar-mis-turnos.use-case';
+import { ObtenerTurnoUseCase } from './application/use-cases/obtener-turno.use-case';
 import { ObtenerPosicionTurnoUseCase } from './application/use-cases/obtener-posicion-turno.use-case';
 
 @Module({
@@ -25,6 +27,8 @@ import { ObtenerPosicionTurnoUseCase } from './application/use-cases/obtener-pos
     AvanzarTurnoUseCase,
     CancelarTurnoUseCase,
     ListarTurnosPorPuntoUseCase,
+    ListarMisTurnosUseCase,
+    ObtenerTurnoUseCase,
     ObtenerPosicionTurnoUseCase,
     { provide: TURNO_REPOSITORY, useClass: PrismaTurnoRepository },
   ],

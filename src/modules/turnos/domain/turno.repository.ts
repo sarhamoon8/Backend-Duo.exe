@@ -13,6 +13,8 @@ export interface TurnoRepository {
   crear(turno: NuevoTurno): Promise<Turno>;
   buscarPorId(id: string): Promise<Turno | null>;
   listarPorPunto(puntoId: string, servicioId?: string): Promise<Turno[]>;
+  // Turnos de un usuario, todos los estados, más reciente primero.
+  listarPorUsuario(usuarioId: string): Promise<Turno[]>;
   // Cancelación: solo cambia el estado, sin tocar ventanilla ni horas.
   actualizarEstado(id: string, estado: EstadoTurno): Promise<Turno>;
   // PENDIENTE -> EN_CURSO: asigna la ventanilla que llama y registra

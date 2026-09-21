@@ -39,6 +39,14 @@ export class PrismaTurnoRepository implements TurnoRepository {
     return turnos.map(TurnoMapper.toDomain);
   }
 
+  async listarPorUsuario(usuarioId: string): Promise<Turno[]> {
+    const turnos = await this.prisma.turno.findMany({
+      where: { usuarioId },
+      orderBy: { creadoEn: 'desc' },
+    });
+    return turnos.map(TurnoMapper.toDomain);
+  }
+
   async actualizarEstado(id: string, estado: EstadoTurno): Promise<Turno> {
     const actualizado = await this.prisma.turno.update({
       where: { id },

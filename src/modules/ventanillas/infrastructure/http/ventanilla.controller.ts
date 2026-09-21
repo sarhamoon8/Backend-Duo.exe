@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CrearVentanillaUseCase } from '../../application/use-cases/crear-ventanilla.use-case';
 import { ListarVentanillasPorPuntoUseCase } from '../../application/use-cases/listar-ventanillas-por-punto.use-case';
 import { CrearVentanillaDto } from '../../application/dto/crear-ventanilla.dto';
@@ -10,6 +11,8 @@ import { Rol } from '../../../usuarios/domain/rol.enum';
 // visible para el usuario final), las ventanillas son información operativa
 // interna: a qué módulo está llamando el personal de atención. Todo el
 // controlador queda restringido a personal de atención/administración.
+@ApiTags('ventanillas')
+@ApiBearerAuth()
 @Roles(Rol.FUNCIONARIO, Rol.ADMIN)
 @Controller('ventanillas')
 export class VentanillaController {
@@ -18,6 +21,7 @@ export class VentanillaController {
     private readonly listarVentanillasPorPuntoUseCase: ListarVentanillasPorPuntoUseCase,
   ) {}
 
+  @ApiOperation({ summary: 'Crear una ventanilla en un punto de dispensación' })
   @Post()
   async crear(
     @Body() dto: CrearVentanillaDto,
@@ -26,6 +30,7 @@ export class VentanillaController {
     return VentanillaResponseDto.fromEntity(ventanilla);
   }
 
+  @ApiOperation({ summary: 'Listar las ventanillas de un punto de dispensación' })
   @Get()
   async listarPorPunto(
     @Query('puntoId') puntoId: string,

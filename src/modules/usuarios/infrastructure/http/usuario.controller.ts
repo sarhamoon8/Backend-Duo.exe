@@ -7,6 +7,7 @@ import {
   Post,
   Req,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CrearUsuarioUseCase } from '../../application/use-cases/crear-usuario.use-case';
 import { ObtenerUsuarioUseCase } from '../../application/use-cases/obtener-usuario.use-case';
 import { ListarUsuariosUseCase } from '../../application/use-cases/listar-usuarios.use-case';
@@ -16,6 +17,8 @@ import { Roles } from '../../../auth/infrastructure/decorators/roles.decorator';
 import { Rol } from '../../domain/rol.enum';
 import type { AuthenticatedRequest } from '../../../auth/domain/authenticated-request.interface';
 
+@ApiTags('usuarios')
+@ApiBearerAuth()
 @Controller('usuarios')
 export class UsuarioController {
   constructor(
@@ -27,6 +30,7 @@ export class UsuarioController {
   // Crear usuarios con rol arbitrario (p. ej. FUNCIONARIO o ADMIN) es
   // exclusivo de administradores. El autorregistro público vive en
   // POST /auth/register y siempre asigna PACIENTE.
+  @ApiOperation({ summary: 'Crear un usuario con rol arbitrario (solo ADMIN)' })
   @Roles(Rol.ADMIN)
   @Post()
   async crear(@Body() dto: CrearUsuarioDto): Promise<UsuarioResponseDto> {
@@ -36,6 +40,7 @@ export class UsuarioController {
 
   // Listar el padrón completo de usuarios es una funcionalidad
   // administrativa (consultar información de otros usuarios).
+  @ApiOperation({ summary: 'Listar todos los usuarios (solo ADMIN)' })
   @Roles(Rol.ADMIN)
   @Get()
   async listar(): Promise<UsuarioResponseDto[]> {
@@ -45,6 +50,7 @@ export class UsuarioController {
 
   // Cualquier usuario autenticado puede consultar su propio perfil;
   // consultar el de otra persona requiere ser ADMIN.
+  @ApiOperation({ summary: 'Obtener un usuario por id (propio o ADMIN)' })
   @Get(':id')
   async obtener(
     @Param('id') id: string,
