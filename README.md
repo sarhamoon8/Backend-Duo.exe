@@ -68,6 +68,7 @@ Ver [.env.example](./.env.example).
 | `npm run format` | Formatea con Prettier |
 | `npm test` | Pruebas unitarias (Jest) |
 | `npm run test:e2e` | Pruebas end-to-end |
+| `npm run test:postman` | Corre la colección de Postman por CLI (Newman) contra la API local |
 | `npm run test:cov` | Pruebas con reporte de cobertura |
 | `npx prisma studio` | Explorador visual de la base de datos |
 | `npx prisma migrate dev` | Crea y aplica una migración a partir de cambios en `prisma/schema.prisma` |
@@ -116,6 +117,10 @@ Más una `EntidadMedica` ("Nueva EPS"), un `PuntoDispensacion` ("Sede Fusagasug�
    - `POST /turnos` con el `servicioId` y `puntoId` obtenidos del catálogo: crea el turno y muestra la posición en la fila.
    - `GET /turnos/mis-turnos`: el paciente ve su propio turno y su posición — esta es la pantalla central del producto.
    - Cerrar sesión de paciente y autenticar con `funcionario@filacero.demo`. `GET /ventanillas?puntoId=<puntoId>` para obtener una ventanilla, luego `PATCH /turnos/{id}/avanzar` con `{"ventanillaId": "..."}` para llamar el turno (PENDIENTE → EN_CURSO), y de nuevo sin body para finalizar la atención (EN_CURSO → ATENDIDO).
+
+### Colección de Postman
+
+Además de Swagger, hay una colección de Postman lista para importar en [postman/FilaCero-API.postman_collection.json](./postman/FilaCero-API.postman_collection.json) — mismo guion de demo, pero con los tokens y los IDs (entidad, punto, servicio, ventanilla, turno) capturados automáticamente entre peticiones mediante scripts, sin copiar/pegar nada a mano. Instrucciones de uso e interpretación en [postman/README.md](./postman/README.md). También se puede correr por línea de comandos con `npm run test:postman` (usa Newman).
 
 ## Pruebas
 

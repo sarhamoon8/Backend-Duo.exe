@@ -1,0 +1,557 @@
+{
+  "info": {
+    "_postman_id": "f11ac3r0-0000-4000-8000-000000000001",
+    "name": "FilaCero API",
+    "description": "Colección de Postman para el backend de FilaCero (gestión de turnos y dispensación de medicamentos). Organizada en el mismo orden que el guion de demo del README: Auth → Catálogo → Turnos.\n\nAntes de usarla:\n1. Levanta la API local (`npm run start:dev`) y carga los datos de demo (`npm run db:seed`).\n2. Corre las tres peticiones de la carpeta **Auth** primero: guardan automáticamente los tokens de ADMIN, FUNCIONARIO y PACIENTE en las variables de la colección, y el resto de las peticiones ya vienen configuradas para usarlos.\n3. Corre las peticiones de **Catálogo** para capturar automáticamente entidadId/puntoId/servicioId/ventanillaId.\n4. A partir de ahí, todo el flujo de **Turnos** funciona sin editar nada a mano.\n\nTambién puedes importar directamente el spec OpenAPI vivo desde `{{baseUrl}}/api/docs-json` si prefieres regenerar la colección.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "token_admin", "value": "", "type": "string" },
+    { "key": "token_funcionario", "value": "", "type": "string" },
+    { "key": "token_paciente", "value": "", "type": "string" },
+    { "key": "entidadId", "value": "", "type": "string" },
+    { "key": "puntoId", "value": "", "type": "string" },
+    { "key": "servicioId", "value": "", "type": "string" },
+    { "key": "ventanillaId", "value": "", "type": "string" },
+    { "key": "usuarioId", "value": "", "type": "string" },
+    { "key": "turnoId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "description": "Corre estas tres peticiones primero. Cada una guarda su token en una variable de la colección (token_admin / token_funcionario / token_paciente) que el resto de las peticiones ya referencian.",
+      "item": [
+        {
+          "name": "Login - Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login exitoso (201)', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('token_admin', json.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@filacero.demo\",\n  \"password\": \"FilaCero2026!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Credenciales creadas por `npm run db:seed`."
+          }
+        },
+        {
+          "name": "Login - Funcionario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login exitoso (201)', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('token_funcionario', json.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"funcionario@filacero.demo\",\n  \"password\": \"FilaCero2026!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login - Paciente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login exitoso (201)', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('token_paciente', json.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"paciente@filacero.demo\",\n  \"password\": \"FilaCero2026!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Registrar nuevo paciente (autorregistro)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Registro exitoso (201)', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroDocumento\": \"{{$randomInt}}{{$timestamp}}\",\n  \"tipoDocumento\": \"CC\",\n  \"nombres\": \"María\",\n  \"apellidos\": \"González\",\n  \"email\": \"maria.gonzalez.{{$timestamp}}@example.com\",\n  \"password\": \"clave123\",\n  \"telefono\": \"3009998877\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Autorregistro público. Siempre crea el usuario con rol PACIENTE. Usa variables dinámicas de Postman ($timestamp) para que el email/documento sean únicos en cada corrida, así la colección se puede correr varias veces sin chocar con el 409 de duplicado."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Catálogo (público)",
+      "description": "No requieren token. Cada GET guarda el primer id de la respuesta en la variable correspondiente, para encadenar el resto de la colección sin copiar/pegar nada.",
+      "item": [
+        {
+          "name": "Listar entidades médicas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json[0]) pm.collectionVariables.set('entidadId', json[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/entidades-medicas", "host": ["{{baseUrl}}"], "path": ["entidades-medicas"] }
+          }
+        },
+        {
+          "name": "Listar puntos de dispensación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json[0]) pm.collectionVariables.set('puntoId', json[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/puntos-dispensacion", "host": ["{{baseUrl}}"], "path": ["puntos-dispensacion"] }
+          }
+        },
+        {
+          "name": "Listar servicios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json[0]) pm.collectionVariables.set('servicioId', json[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/servicios", "host": ["{{baseUrl}}"], "path": ["servicios"] }
+          }
+        },
+        {
+          "name": "Listar servicios de una entidad (filtro)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/servicios?entidadId={{entidadId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicios"],
+              "query": [{ "key": "entidadId", "value": "{{entidadId}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Ventanillas (FUNCIONARIO/ADMIN)",
+      "item": [
+        {
+          "name": "Listar ventanillas de un punto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json[0]) pm.collectionVariables.set('ventanillaId', json[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_funcionario}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/ventanillas?puntoId={{puntoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ventanillas"],
+              "query": [{ "key": "puntoId", "value": "{{puntoId}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Turnos — flujo completo",
+      "description": "El corazón de la demo: solicitar un turno, verlo desde el punto de vista del paciente, y gestionarlo desde el punto de vista del personal de atención.",
+      "item": [
+        {
+          "name": "Crear turno (como PACIENTE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Turno creado (201)', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('turnoId', json.id);",
+                  "pm.test('posicion inicial es un número', () => pm.expect(json.posicion).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servicioId\": \"{{servicioId}}\",\n  \"puntoId\": \"{{puntoId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/turnos", "host": ["{{baseUrl}}"], "path": ["turnos"] },
+            "description": "usuarioId NO va en el body: se toma del token del paciente autenticado."
+          }
+        },
+        {
+          "name": "Mis turnos (como PACIENTE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{baseUrl}}/turnos/mis-turnos", "host": ["{{baseUrl}}"], "path": ["turnos", "mis-turnos"] },
+            "description": "La pantalla central del producto: el paciente ve su propio turno y su posición en la fila."
+          }
+        },
+        {
+          "name": "Obtener un turno por id (como PACIENTE, dueño)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{baseUrl}}/turnos/{{turnoId}}", "host": ["{{baseUrl}}"], "path": ["turnos", "{{turnoId}}"] }
+          }
+        },
+        {
+          "name": "Ver la fila del punto (como FUNCIONARIO)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_funcionario}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/turnos?puntoId={{puntoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos"],
+              "query": [{ "key": "puntoId", "value": "{{puntoId}}" }]
+            },
+            "description": "Vista exclusiva de personal de atención / administración: un PACIENTE recibe 403 aquí."
+          }
+        },
+        {
+          "name": "Avanzar turno: llamar (PENDIENTE → EN_CURSO)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('estado EN_CURSO', () => pm.expect(json.estado).to.eql('EN_CURSO'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_funcionario}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"ventanillaId\": \"{{ventanillaId}}\"\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/turnos/{{turnoId}}/avanzar",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos", "{{turnoId}}", "avanzar"]
+            },
+            "description": "ventanillaId es obligatorio para llamar un turno PENDIENTE."
+          }
+        },
+        {
+          "name": "Avanzar turno: finalizar (EN_CURSO → ATENDIDO)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('estado ATENDIDO', () => pm.expect(json.estado).to.eql('ATENDIDO'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_funcionario}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": {
+              "raw": "{{baseUrl}}/turnos/{{turnoId}}/avanzar",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos", "{{turnoId}}", "avanzar"]
+            },
+            "description": "No requiere ventanillaId. Correr después de 'llamar'."
+          }
+        },
+        {
+          "name": "Cancelar turno ya ATENDIDO → 400 (regla de negocio)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request: no se puede cancelar un turno ATENDIDO', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/turnos/{{turnoId}}/cancelar",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos", "{{turnoId}}", "cancelar"]
+            },
+            "description": "Corrida en este orden (después de 'finalizar'), demuestra la regla de negocio: un turno ATENDIDO ya no se puede cancelar. Para ver el caso feliz (200), corre 'Crear turno' de nuevo justo antes de esta petición, sin pasar por los dos pasos de 'avanzar'."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Administración (ADMIN)",
+      "description": "Gestión del catálogo. No hace falta correrlas para la demo (el seed ya deja datos listos); están para mostrar que la creación también funciona.",
+      "item": [
+        {
+          "name": "Crear entidad médica",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Sanitas EPS\"\n}" },
+            "url": { "raw": "{{baseUrl}}/entidades-medicas", "host": ["{{baseUrl}}"], "path": ["entidades-medicas"] }
+          }
+        },
+        {
+          "name": "Crear punto de dispensación",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entidadId\": \"{{entidadId}}\",\n  \"nombreSede\": \"Sede Soacha\",\n  \"direccion\": \"Cra 5 # 20-10\",\n  \"ciudad\": \"Soacha\",\n  \"capacidadAtencion\": 60\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/puntos-dispensacion", "host": ["{{baseUrl}}"], "path": ["puntos-dispensacion"] }
+          }
+        },
+        {
+          "name": "Crear servicio",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigoServicio\": \"DISP-URG\",\n  \"nombre\": \"Dispensación urgente\",\n  \"tiempoPromedioMin\": 5,\n  \"entidadId\": \"{{entidadId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/servicios", "host": ["{{baseUrl}}"], "path": ["servicios"] }
+          }
+        },
+        {
+          "name": "Listar todos los usuarios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json[0]) pm.collectionVariables.set('usuarioId', json[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Casos negativos (para mostrar la seguridad)",
+      "description": "Demuestran los guards de autenticación/autorización descritos en el README.",
+      "item": [
+        {
+          "name": "GET /usuarios sin token → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] }
+          }
+        },
+        {
+          "name": "GET /usuarios como PACIENTE → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('403 Forbidden', () => pm.response.to.have.status(403));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] }
+          }
+        },
+        {
+          "name": "Ver la fila como PACIENTE → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('403 Forbidden', () => pm.response.to.have.status(403));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/turnos?puntoId={{puntoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos"],
+              "query": [{ "key": "puntoId", "value": "{{puntoId}}" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
