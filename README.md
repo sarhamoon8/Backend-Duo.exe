@@ -1,114 +1,101 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# FilaCero — Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend del proyecto integrador **FilaCero**: sistema web para la gestión de turnos y el seguimiento de la dispensación de medicamentos en EPS y centros médicos (Ingeniería de Software I, Universidad de Cundinamarca — Fusagasugá).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+> Contexto completo del proyecto (requisitos, roles, modelo de datos, reglas de negocio): [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md).
+> Estado real del código frente a esos requisitos: [AUDIT_REPORT.md](./AUDIT_REPORT.md).
 
-## Description
+## Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Node.js** + **TypeScript**
+- **NestJS 12** (arquitectura hexagonal por módulo: `domain` / `application` / `infrastructure`)
+- **Prisma 6** como ORM
+- **PostgreSQL 16**
+- **JWT** (`@nestjs/jwt`) para autenticación, **bcrypt** para hash de contraseñas
+- **Jest** + **supertest** para pruebas
+- **oxlint** como linter, **Prettier** como formateador
 
-## Project setup
+## Requisitos previos
+
+- Node.js 22+ (el proyecto usa `@types/node` ^24)
+- Docker (para levantar PostgreSQL local vía `docker-compose.yml`) — o un PostgreSQL propio
+- npm
+
+## Puesta en marcha
 
 ```bash
-$ npm install
+# 1. Instalar dependencias
+npm install
+
+# 2. Copiar las variables de entorno y ajustar si hace falta
+cp .env.example .env
+
+# 3. Levantar la base de datos (PostgreSQL en Docker)
+docker compose up -d
+
+# 4. Aplicar las migraciones y generar el cliente de Prisma
+npx prisma migrate dev
+
+# 5. Levantar la API en modo desarrollo
+npm run start:dev
 ```
 
-## Compile and run the project
+La API queda disponible en `http://localhost:3000` (o el puerto que definas en `PORT`).
+
+## Variables de entorno
+
+| Variable | Descripción |
+|---|---|
+| `DATABASE_URL` | Cadena de conexión a PostgreSQL. Por defecto apunta al contenedor de `docker-compose.yml`. |
+| `JWT_SECRET` | Secreto para firmar/verificar los JWT. **Cambiar en cualquier entorno que no sea desarrollo local.** |
+| `PORT` | Puerto HTTP de la API (opcional, por defecto `3000`). |
+
+Ver [.env.example](./.env.example).
+
+## Scripts disponibles
+
+| Comando | Qué hace |
+|---|---|
+| `npm run start:dev` | Levanta la API en modo watch |
+| `npm run build` | Compila a `dist/` |
+| `npm run start:prod` | Corre la build compilada |
+| `npm run lint` | Corre oxlint sobre `src/` y `test/` |
+| `npm run format` | Formatea con Prettier |
+| `npm test` | Pruebas unitarias (Jest) |
+| `npm run test:e2e` | Pruebas end-to-end |
+| `npm run test:cov` | Pruebas con reporte de cobertura |
+| `npx prisma studio` | Explorador visual de la base de datos |
+| `npx prisma migrate dev` | Crea y aplica una migración a partir de cambios en `prisma/schema.prisma` |
+
+## Arquitectura
+
+Monolito modular con **arquitectura hexagonal por dominio**. Cada módulo en `src/modules/<modulo>/` sigue la misma estructura:
+
+```
+domain/          → entidades, interfaces de repositorio (puertos) y enums del dominio
+application/     → casos de uso (un caso de uso = una clase con ejecutar()) y DTOs
+infrastructure/  → controllers HTTP, repositorios Prisma y mappers dominio↔Prisma
+```
+
+Módulos actuales: `auth`, `usuarios`, `entidades-medicas`, `servicios`, `turnos`.
+
+## Autenticación y roles
+
+La API usa JWT Bearer (`Authorization: Bearer <token>`). Hay tres roles (`Rol`): `PACIENTE`, `FUNCIONARIO`, `ADMIN`.
+
+- **Rutas públicas** (sin token): `POST /auth/register`, `POST /auth/login`, y la exploración de catálogos (`GET /entidades-medicas`, `GET /servicios`, …).
+- **Rutas autenticadas sin rol específico**: accesibles a cualquier usuario con token válido (p. ej. crear tu propio turno).
+- **Rutas restringidas por rol** (`@Roles(...)`): por ejemplo, crear entidades médicas o servicios, listar todos los usuarios, o gestionar la fila (`avanzar` un turno) son operaciones de `ADMIN`/`FUNCIONARIO`.
+- Los guards (`JwtAuthGuard`, `RolesGuard`) están registrados **globalmente**; una ruta nueva requiere autenticación por defecto salvo que se marque explícitamente con `@Public()`.
+
+## Pruebas
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm test          # unitarias
+npm run test:e2e  # end-to-end (requiere la base de datos levantada)
 ```
 
-## Run tests
+## Documentación relacionada
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md) — requisitos funcionales/no funcionales, roles, modelo de datos y reglas de negocio del proyecto.
+- [AUDIT_REPORT.md](./AUDIT_REPORT.md) — auditoría del estado del repositorio frente a esos requisitos.
