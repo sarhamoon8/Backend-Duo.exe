@@ -19,8 +19,8 @@ export class CrearTurnoUseCase {
     private readonly servicioRepository: ServicioRepository,
   ) {}
 
-  async ejecutar(dto: CrearTurnoDto): Promise<Turno> {
-    const usuario = await this.usuarioRepository.buscarPorId(dto.usuarioId);
+  async ejecutar(dto: CrearTurnoDto, usuarioId: string): Promise<Turno> {
+    const usuario = await this.usuarioRepository.buscarPorId(usuarioId);
     if (!usuario) {
       throw new NotFoundException('Usuario no encontrado');
     }
@@ -32,14 +32,9 @@ export class CrearTurnoUseCase {
       throw new NotFoundException('Servicio no encontrado');
     }
 
-    const pendientes = await this.turnoRepository.contarPendientesPorServicio(
-      dto.servicioId,
-    );
-
     return this.turnoRepository.crear({
-      usuarioId: dto.usuarioId,
+      usuarioId,
       servicioId: dto.servicioId,
-      posicion: pendientes + 1,
     });
   }
 }

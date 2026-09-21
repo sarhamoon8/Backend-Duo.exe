@@ -9,7 +9,6 @@ export class TurnoMapper {
       turnoPrisma.usuarioId,
       turnoPrisma.servicioId,
       turnoPrisma.estado as unknown as EstadoTurno,
-      turnoPrisma.posicion,
       turnoPrisma.creadoEn,
     );
   }

@@ -50,8 +50,13 @@ model Turno {
   servicio   Servicio    @relation(fields: [servicioId], references: [id])
   servicioId String
   estado     EstadoTurno @default(PENDIENTE)
-  posicion   Int?
   creadoEn   DateTime    @default(now())
+
+  // La posición en la fila se calcula en tiempo de consulta a partir de
+  // creadoEn (ver ObtenerPosicionTurnoUseCase); no se persiste porque un
+  // valor guardado queda desincronizado tras cancelaciones y es propenso
+  // a duplicarse bajo creación concurrente.
+  @@index([servicioId, estado])
 }
 
 enum EstadoTurno {

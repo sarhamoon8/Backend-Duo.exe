@@ -15,7 +15,6 @@ export class PrismaTurnoRepository implements TurnoRepository {
       data: {
         usuarioId: turno.usuarioId,
         servicioId: turno.servicioId,
-        posicion: turno.posicion,
       },
     });
     return TurnoMapper.toDomain(creado);
@@ -42,11 +41,12 @@ export class PrismaTurnoRepository implements TurnoRepository {
     return TurnoMapper.toDomain(actualizado);
   }
 
-  contarPendientesPorServicio(servicioId: string): Promise<number> {
+  contarPendientesAntes(servicioId: string, creadoEn: Date): Promise<number> {
     return this.prisma.turno.count({
       where: {
         servicioId,
         estado: EstadoTurno.PENDIENTE as unknown as PrismaEstadoTurno,
+        creadoEn: { lt: creadoEn },
       },
     });
   }

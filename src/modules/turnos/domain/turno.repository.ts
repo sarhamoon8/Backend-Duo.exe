@@ -4,7 +4,6 @@ import { Turno } from './turno.entity';
 export interface NuevoTurno {
   usuarioId: string;
   servicioId: string;
-  posicion: number | null;
 }
 
 export interface TurnoRepository {
@@ -12,7 +11,10 @@ export interface TurnoRepository {
   buscarPorId(id: string): Promise<Turno | null>;
   listarPorServicio(servicioId: string): Promise<Turno[]>;
   actualizarEstado(id: string, estado: EstadoTurno): Promise<Turno>;
-  contarPendientesPorServicio(servicioId: string): Promise<number>;
+  // Cuenta los turnos PENDIENTE de un servicio creados antes de `creadoEn`;
+  // es la base para calcular la posición de un turno en la fila sin
+  // persistirla (ver Turno, en domain/turno.entity.ts).
+  contarPendientesAntes(servicioId: string, creadoEn: Date): Promise<number>;
 }
 
 export const TURNO_REPOSITORY = Symbol('TURNO_REPOSITORY');

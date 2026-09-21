@@ -8,6 +8,7 @@ import { CrearTurnoUseCase } from './application/use-cases/crear-turno.use-case'
 import { AvanzarTurnoUseCase } from './application/use-cases/avanzar-turno.use-case';
 import { CancelarTurnoUseCase } from './application/use-cases/cancelar-turno.use-case';
 import { ListarTurnosPorServicioUseCase } from './application/use-cases/listar-turnos-por-servicio.use-case';
+import { ObtenerPosicionTurnoUseCase } from './application/use-cases/obtener-posicion-turno.use-case';
 
 @Module({
   imports: [UsuariosModule, ServiciosModule],
@@ -17,6 +18,7 @@ import { ListarTurnosPorServicioUseCase } from './application/use-cases/listar-t
     AvanzarTurnoUseCase,
     CancelarTurnoUseCase,
     ListarTurnosPorServicioUseCase,
+    ObtenerPosicionTurnoUseCase,
     { provide: TURNO_REPOSITORY, useClass: PrismaTurnoRepository },
   ],
 })
