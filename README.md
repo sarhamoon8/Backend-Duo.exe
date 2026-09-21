@@ -4,6 +4,7 @@ Backend del proyecto integrador **FilaCero**: sistema web para la gestión de tu
 
 > Contexto completo del proyecto (requisitos, roles, modelo de datos, reglas de negocio): [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md).
 > Estado real del código frente a esos requisitos: [AUDIT_REPORT.md](./AUDIT_REPORT.md).
+> **¿Vas a construir el frontend?** Empieza por [FRONTEND_GUIDE.md](./FRONTEND_GUIDE.md) — no necesitas leer el resto de este documento para eso.
 
 ## Stack
 
