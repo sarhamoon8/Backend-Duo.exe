@@ -16,17 +16,31 @@ export class CrearUsuarioUseCase {
   ) {}
 
   async ejecutar(dto: CrearUsuarioDto): Promise<Usuario> {
-    const existente = await this.usuarioRepository.buscarPorEmail(dto.email);
-    if (existente) {
+    const emailExistente = await this.usuarioRepository.buscarPorEmail(
+      dto.email,
+    );
+    if (emailExistente) {
       throw new ConflictException('El email ya está registrado');
+    }
+
+    const documentoExistente =
+      await this.usuarioRepository.buscarPorNumeroDocumento(
+        dto.numeroDocumento,
+      );
+    if (documentoExistente) {
+      throw new ConflictException('El número de documento ya está registrado');
     }
 
     const passwordHasheado = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
     return this.usuarioRepository.crear({
-      nombre: dto.nombre,
+      numeroDocumento: dto.numeroDocumento,
+      tipoDocumento: dto.tipoDocumento,
+      nombres: dto.nombres,
+      apellidos: dto.apellidos,
       email: dto.email,
       password: passwordHasheado,
+      telefono: dto.telefono,
       rol: dto.rol ?? Rol.PACIENTE,
     });
   }

@@ -15,6 +15,9 @@ export class PrismaTurnoRepository implements TurnoRepository {
       data: {
         usuarioId: turno.usuarioId,
         servicioId: turno.servicioId,
+        puntoId: turno.puntoId,
+        codigoAlfanumerico: turno.codigoAlfanumerico,
+        prioridad: turno.prioridad,
       },
     });
     return TurnoMapper.toDomain(creado);
@@ -25,9 +28,12 @@ export class PrismaTurnoRepository implements TurnoRepository {
     return turno ? TurnoMapper.toDomain(turno) : null;
   }
 
-  async listarPorServicio(servicioId: string): Promise<Turno[]> {
+  async listarPorPunto(
+    puntoId: string,
+    servicioId?: string,
+  ): Promise<Turno[]> {
     const turnos = await this.prisma.turno.findMany({
-      where: { servicioId },
+      where: { puntoId, ...(servicioId ? { servicioId } : {}) },
       orderBy: { creadoEn: 'asc' },
     });
     return turnos.map(TurnoMapper.toDomain);
@@ -41,9 +47,37 @@ export class PrismaTurnoRepository implements TurnoRepository {
     return TurnoMapper.toDomain(actualizado);
   }
 
-  contarPendientesAntes(servicioId: string, creadoEn: Date): Promise<number> {
+  async iniciarAtencion(id: string, ventanillaId: string): Promise<Turno> {
+    const actualizado = await this.prisma.turno.update({
+      where: { id },
+      data: {
+        estado: EstadoTurno.EN_CURSO as unknown as PrismaEstadoTurno,
+        ventanillaId,
+        horaLlamado: new Date(),
+      },
+    });
+    return TurnoMapper.toDomain(actualizado);
+  }
+
+  async finalizarAtencion(id: string): Promise<Turno> {
+    const actualizado = await this.prisma.turno.update({
+      where: { id },
+      data: {
+        estado: EstadoTurno.ATENDIDO as unknown as PrismaEstadoTurno,
+        horaFinalizacion: new Date(),
+      },
+    });
+    return TurnoMapper.toDomain(actualizado);
+  }
+
+  contarPendientesAntes(
+    puntoId: string,
+    servicioId: string,
+    creadoEn: Date,
+  ): Promise<number> {
     return this.prisma.turno.count({
       where: {
+        puntoId,
         servicioId,
         estado: EstadoTurno.PENDIENTE as unknown as PrismaEstadoTurno,
         creadoEn: { lt: creadoEn },

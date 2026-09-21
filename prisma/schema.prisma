@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"   
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -14,13 +14,17 @@ datasource db {
 }
 
 model Usuario {
-  id        String   @id @default(uuid())
-  nombre    String
-  email     String   @unique
-  password  String
-  rol       Rol      @default(PACIENTE)
-  creadoEn  DateTime @default(now())
-  turnos    Turno[]
+  id              String   @id @default(uuid())
+  numeroDocumento String   @unique
+  tipoDocumento   String
+  nombres         String
+  apellidos       String
+  email           String   @unique
+  password        String
+  telefono        String?
+  rol             Rol      @default(PACIENTE)
+  creadoEn        DateTime @default(now())
+  turnos          Turno[]
 }
 
 enum Rol {
@@ -29,34 +33,82 @@ enum Rol {
   ADMIN
 }
 
+// La institución de salud (EPS, IPS, centro médico). No forma parte del
+// modelo relacional de 12 entidades documentado en PROJECT_CONTEXT.md,
+// pero se mantiene como decisión ya tomada por el código: representa el
+// nivel "institución", distinto de PuntoDispensacion ("sede física").
 model EntidadMedica {
-  id        String     @id @default(uuid())
-  nombre    String
-  servicios Servicio[]
+  id                 String              @id @default(uuid())
+  nombre             String
+  servicios          Servicio[]
+  puntosDispensacion PuntoDispensacion[]
 }
 
 model Servicio {
-  id        String        @id @default(uuid())
-  nombre    String
-  entidad   EntidadMedica @relation(fields: [entidadId], references: [id])
-  entidadId String
-  turnos    Turno[]
+  id                String        @id @default(uuid())
+  codigoServicio    String        @unique
+  nombre            String
+  tiempoPromedioMin Int
+  activo            Boolean       @default(true)
+  entidad           EntidadMedica @relation(fields: [entidadId], references: [id])
+  entidadId         String
+  turnos            Turno[]
+}
+
+// Sede física de una EntidadMedica (PUNTO_DISPENSACION en el modelo
+// relacional completo, sección 15.1 de PROJECT_CONTEXT.md).
+model PuntoDispensacion {
+  id                String       @id @default(uuid())
+  entidad           EntidadMedica @relation(fields: [entidadId], references: [id])
+  entidadId         String
+  nombreSede        String
+  direccion         String
+  ciudad            String
+  telefonoContacto  String?
+  capacidadAtencion Int
+  ventanillas       Ventanilla[]
+  turnos            Turno[]
+}
+
+enum EstadoOperativoVentanilla {
+  ACTIVA
+  INACTIVA
+}
+
+model Ventanilla {
+  id                String                    @id @default(uuid())
+  puntoDispensacion PuntoDispensacion          @relation(fields: [puntoId], references: [id])
+  puntoId           String
+  numeroModulo      String
+  estadoOperativo   EstadoOperativoVentanilla @default(ACTIVA)
+  turnos            Turno[]
+
+  @@unique([puntoId, numeroModulo])
 }
 
 model Turno {
-  id         String      @id @default(uuid())
-  usuario    Usuario     @relation(fields: [usuarioId], references: [id])
-  usuarioId  String
-  servicio   Servicio    @relation(fields: [servicioId], references: [id])
-  servicioId String
-  estado     EstadoTurno @default(PENDIENTE)
-  creadoEn   DateTime    @default(now())
+  id                 String      @id @default(uuid())
+  usuario            Usuario     @relation(fields: [usuarioId], references: [id])
+  usuarioId          String
+  servicio           Servicio    @relation(fields: [servicioId], references: [id])
+  servicioId         String
+  puntoDispensacion  PuntoDispensacion @relation(fields: [puntoId], references: [id])
+  puntoId            String
+  ventanilla         Ventanilla? @relation(fields: [ventanillaId], references: [id])
+  ventanillaId       String?
+  codigoAlfanumerico String      @unique
+  estado             EstadoTurno @default(PENDIENTE)
+  prioridad          Boolean     @default(false)
+  horaLlamado        DateTime?
+  horaFinalizacion   DateTime?
+  creadoEn           DateTime    @default(now())
 
   // La posición en la fila se calcula en tiempo de consulta a partir de
   // creadoEn (ver ObtenerPosicionTurnoUseCase); no se persiste porque un
   // valor guardado queda desincronizado tras cancelaciones y es propenso
   // a duplicarse bajo creación concurrente.
   @@index([servicioId, estado])
+  @@index([puntoId, estado])
 }
 
 enum EstadoTurno {

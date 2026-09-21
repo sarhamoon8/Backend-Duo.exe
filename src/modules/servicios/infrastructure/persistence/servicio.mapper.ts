@@ -5,7 +5,10 @@ export class ServicioMapper {
   static toDomain(servicioPrisma: ServicioPrisma): Servicio {
     return new Servicio(
       servicioPrisma.id,
+      servicioPrisma.codigoServicio,
       servicioPrisma.nombre,
+      servicioPrisma.tiempoPromedioMin,
+      servicioPrisma.activo,
       servicioPrisma.entidadId,
     );
   }

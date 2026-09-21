@@ -4,13 +4,13 @@ import { TURNO_REPOSITORY } from '../../domain/turno.repository';
 import type { TurnoRepository } from '../../domain/turno.repository';
 
 @Injectable()
-export class ListarTurnosPorServicioUseCase {
+export class ListarTurnosPorPuntoUseCase {
   constructor(
     @Inject(TURNO_REPOSITORY)
     private readonly turnoRepository: TurnoRepository,
   ) {}
 
-  ejecutar(servicioId: string): Promise<Turno[]> {
-    return this.turnoRepository.listarPorServicio(servicioId);
+  ejecutar(puntoId: string, servicioId?: string): Promise<Turno[]> {
+    return this.turnoRepository.listarPorPunto(puntoId, servicioId);
   }
 }

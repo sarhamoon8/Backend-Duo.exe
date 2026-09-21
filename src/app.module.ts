@@ -8,6 +8,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { EntidadesMedicasModule } from './modules/entidades-medicas/entidades-medicas.module';
 import { ServiciosModule } from './modules/servicios/servicios.module';
 import { TurnosModule } from './modules/turnos/turnos.module';
+import { PuntosDispensacionModule } from './modules/puntos-dispensacion/puntos-dispensacion.module';
+import { VentanillasModule } from './modules/ventanillas/ventanillas.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { TurnosModule } from './modules/turnos/turnos.module';
     AuthModule,
     EntidadesMedicasModule,
     ServiciosModule,
+    PuntosDispensacionModule,
+    VentanillasModule,
     TurnosModule,
   ],
   controllers: [AppController],

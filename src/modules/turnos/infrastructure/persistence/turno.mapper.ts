@@ -8,7 +8,13 @@ export class TurnoMapper {
       turnoPrisma.id,
       turnoPrisma.usuarioId,
       turnoPrisma.servicioId,
+      turnoPrisma.puntoId,
+      turnoPrisma.ventanillaId,
+      turnoPrisma.codigoAlfanumerico,
       turnoPrisma.estado as unknown as EstadoTurno,
+      turnoPrisma.prioridad,
+      turnoPrisma.horaLlamado,
+      turnoPrisma.horaFinalizacion,
       turnoPrisma.creadoEn,
     );
   }

@@ -13,13 +13,26 @@ export class PrismaServicioRepository implements ServicioRepository {
 
   async crear(servicio: NuevoServicio): Promise<Servicio> {
     const creado = await this.prisma.servicio.create({
-      data: { nombre: servicio.nombre, entidadId: servicio.entidadId },
+      data: {
+        codigoServicio: servicio.codigoServicio,
+        nombre: servicio.nombre,
+        tiempoPromedioMin: servicio.tiempoPromedioMin,
+        activo: servicio.activo,
+        entidadId: servicio.entidadId,
+      },
     });
     return ServicioMapper.toDomain(creado);
   }
 
   async buscarPorId(id: string): Promise<Servicio | null> {
     const servicio = await this.prisma.servicio.findUnique({ where: { id } });
+    return servicio ? ServicioMapper.toDomain(servicio) : null;
+  }
+
+  async buscarPorCodigo(codigoServicio: string): Promise<Servicio | null> {
+    const servicio = await this.prisma.servicio.findUnique({
+      where: { codigoServicio },
+    });
     return servicio ? ServicioMapper.toDomain(servicio) : null;
   }
 

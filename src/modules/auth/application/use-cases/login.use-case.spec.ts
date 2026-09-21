@@ -14,9 +14,25 @@ function crearRepositorioFalso(
     crear: jest.fn(),
     buscarPorId: jest.fn(),
     buscarPorEmail: jest.fn(),
+    buscarPorNumeroDocumento: jest.fn(),
     listar: jest.fn(),
     ...overrides,
   } as jest.Mocked<UsuarioRepository>;
+}
+
+function crearUsuario(email: string, passwordHash: string): Usuario {
+  return new Usuario(
+    'id-1',
+    '1000000001',
+    'CC',
+    'Ana',
+    'Prueba',
+    email,
+    passwordHash,
+    null,
+    Rol.PACIENTE,
+    new Date(),
+  );
 }
 
 describe('LoginUseCase', () => {
@@ -39,9 +55,9 @@ describe('LoginUseCase', () => {
   it('rechaza el login si la contraseña no coincide', async () => {
     const hashReal = await bcrypt.hash('otra-clave', 10);
     const repositorio = crearRepositorioFalso({
-      buscarPorEmail: jest.fn().mockResolvedValue(
-        new Usuario('id-1', 'Ana', dto.email, hashReal, Rol.PACIENTE, new Date()),
-      ),
+      buscarPorEmail: jest
+        .fn()
+        .mockResolvedValue(crearUsuario(dto.email, hashReal)),
     });
     const useCase = new LoginUseCase(repositorio, jwtServiceFalso);
 
@@ -53,9 +69,9 @@ describe('LoginUseCase', () => {
   it('emite un token cuando las credenciales son correctas', async () => {
     const hashReal = await bcrypt.hash(dto.password, 10);
     const repositorio = crearRepositorioFalso({
-      buscarPorEmail: jest.fn().mockResolvedValue(
-        new Usuario('id-1', 'Ana', dto.email, hashReal, Rol.PACIENTE, new Date()),
-      ),
+      buscarPorEmail: jest
+        .fn()
+        .mockResolvedValue(crearUsuario(dto.email, hashReal)),
     });
     const useCase = new LoginUseCase(repositorio, jwtServiceFalso);
 

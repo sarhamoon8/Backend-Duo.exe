@@ -15,9 +15,13 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
   async crear(usuario: NuevoUsuario): Promise<Usuario> {
     const creado = await this.prisma.usuario.create({
       data: {
-        nombre: usuario.nombre,
+        numeroDocumento: usuario.numeroDocumento,
+        tipoDocumento: usuario.tipoDocumento,
+        nombres: usuario.nombres,
+        apellidos: usuario.apellidos,
         email: usuario.email,
         password: usuario.password,
+        telefono: usuario.telefono,
         rol: usuario.rol as unknown as PrismaRol,
       },
     });
@@ -31,6 +35,15 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
 
   async buscarPorEmail(email: string): Promise<Usuario | null> {
     const usuario = await this.prisma.usuario.findUnique({ where: { email } });
+    return usuario ? UsuarioMapper.toDomain(usuario) : null;
+  }
+
+  async buscarPorNumeroDocumento(
+    numeroDocumento: string,
+  ): Promise<Usuario | null> {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { numeroDocumento },
+    });
     return usuario ? UsuarioMapper.toDomain(usuario) : null;
   }
 

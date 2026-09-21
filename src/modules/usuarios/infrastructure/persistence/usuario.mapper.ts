@@ -8,9 +8,13 @@ export class UsuarioMapper {
   static toDomain(usuarioPrisma: UsuarioPrisma): Usuario {
     return new Usuario(
       usuarioPrisma.id,
-      usuarioPrisma.nombre,
+      usuarioPrisma.numeroDocumento,
+      usuarioPrisma.tipoDocumento,
+      usuarioPrisma.nombres,
+      usuarioPrisma.apellidos,
       usuarioPrisma.email,
       usuarioPrisma.password,
+      usuarioPrisma.telefono,
       usuarioPrisma.rol as unknown as Rol,
       usuarioPrisma.creadoEn,
     );

@@ -4,8 +4,9 @@ import { Turno } from '../../domain/turno.entity';
 import { TURNO_REPOSITORY } from '../../domain/turno.repository';
 import type { TurnoRepository } from '../../domain/turno.repository';
 
-// Calcula la posición de un turno en su fila en el momento de la consulta.
-// Solo tiene sentido para turnos PENDIENTE; los demás no tienen posición.
+// Calcula la posición de un turno en su fila (punto + servicio) en el
+// momento de la consulta. Solo tiene sentido para turnos PENDIENTE; los
+// demás no tienen posición.
 @Injectable()
 export class ObtenerPosicionTurnoUseCase {
   constructor(
@@ -19,6 +20,7 @@ export class ObtenerPosicionTurnoUseCase {
     }
 
     const anteriores = await this.turnoRepository.contarPendientesAntes(
+      turno.puntoId,
       turno.servicioId,
       turno.creadoEn,
     );

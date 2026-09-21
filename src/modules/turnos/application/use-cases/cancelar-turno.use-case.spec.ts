@@ -15,15 +15,29 @@ function crearRepositorioFalso(
   return {
     crear: jest.fn(),
     buscarPorId: jest.fn(),
-    listarPorServicio: jest.fn(),
+    listarPorPunto: jest.fn(),
     actualizarEstado: jest.fn(),
+    iniciarAtencion: jest.fn(),
+    finalizarAtencion: jest.fn(),
     contarPendientesAntes: jest.fn(),
     ...overrides,
   } as jest.Mocked<TurnoRepository>;
 }
 
 function crearTurno(estado: EstadoTurno, usuarioId = 'usuario-1'): Turno {
-  return new Turno('turno-1', usuarioId, 'servicio-1', estado, new Date());
+  return new Turno(
+    'turno-1',
+    usuarioId,
+    'servicio-1',
+    'punto-1',
+    null,
+    'T-ABC123',
+    estado,
+    false,
+    null,
+    null,
+    new Date(),
+  );
 }
 
 describe('CancelarTurnoUseCase', () => {

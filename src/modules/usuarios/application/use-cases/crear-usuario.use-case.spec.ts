@@ -12,23 +12,60 @@ function crearRepositorioFalso(
     crear: jest.fn(),
     buscarPorId: jest.fn(),
     buscarPorEmail: jest.fn(),
+    buscarPorNumeroDocumento: jest.fn(),
     listar: jest.fn(),
     ...overrides,
   } as jest.Mocked<UsuarioRepository>;
 }
 
-describe('CrearUsuarioUseCase', () => {
-  const dto: CrearUsuarioDto = {
-    nombre: 'Ana',
-    email: 'ana@example.com',
-    password: 'clave123',
-  };
+function crearUsuario(
+  overrides: Partial<{
+    id: string;
+    numeroDocumento: string;
+    email: string;
+    rol: Rol;
+  }> = {},
+): Usuario {
+  return new Usuario(
+    overrides.id ?? 'id-1',
+    overrides.numeroDocumento ?? '1000000001',
+    'CC',
+    'Ana',
+    'Prueba',
+    overrides.email ?? dto.email,
+    'hash',
+    null,
+    overrides.rol ?? Rol.PACIENTE,
+    new Date(),
+  );
+}
 
+const dto: CrearUsuarioDto = {
+  numeroDocumento: '1000000001',
+  tipoDocumento: 'CC',
+  nombres: 'Ana',
+  apellidos: 'Prueba',
+  email: 'ana@example.com',
+  password: 'clave123',
+};
+
+describe('CrearUsuarioUseCase', () => {
   it('rechaza el registro si el email ya existe', async () => {
     const repositorio = crearRepositorioFalso({
-      buscarPorEmail: jest.fn().mockResolvedValue(
-        new Usuario('id-1', 'Ana', dto.email, 'hash', Rol.PACIENTE, new Date()),
-      ),
+      buscarPorEmail: jest.fn().mockResolvedValue(crearUsuario()),
+    });
+    const useCase = new CrearUsuarioUseCase(repositorio);
+
+    await expect(useCase.ejecutar(dto)).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+    expect(repositorio.crear).not.toHaveBeenCalled();
+  });
+
+  it('rechaza el registro si el número de documento ya existe', async () => {
+    const repositorio = crearRepositorioFalso({
+      buscarPorEmail: jest.fn().mockResolvedValue(null),
+      buscarPorNumeroDocumento: jest.fn().mockResolvedValue(crearUsuario()),
     });
     const useCase = new CrearUsuarioUseCase(repositorio);
 
@@ -41,18 +78,25 @@ describe('CrearUsuarioUseCase', () => {
   it('hashea la contraseña antes de persistir y nunca guarda el texto plano', async () => {
     const repositorio = crearRepositorioFalso({
       buscarPorEmail: jest.fn().mockResolvedValue(null),
-      crear: jest.fn().mockImplementation((usuario) =>
-        Promise.resolve(
-          new Usuario(
-            'id-1',
-            usuario.nombre,
-            usuario.email,
-            usuario.password,
-            usuario.rol,
-            new Date(),
+      buscarPorNumeroDocumento: jest.fn().mockResolvedValue(null),
+      crear: jest
+        .fn()
+        .mockImplementation((usuario) =>
+          Promise.resolve(
+            new Usuario(
+              'id-1',
+              usuario.numeroDocumento,
+              usuario.tipoDocumento,
+              usuario.nombres,
+              usuario.apellidos,
+              usuario.email,
+              usuario.password,
+              usuario.telefono ?? null,
+              usuario.rol,
+              new Date(),
+            ),
           ),
         ),
-      ),
     });
     const useCase = new CrearUsuarioUseCase(repositorio);
 
@@ -67,18 +111,25 @@ describe('CrearUsuarioUseCase', () => {
   it('asigna el rol PACIENTE por defecto cuando no se especifica', async () => {
     const repositorio = crearRepositorioFalso({
       buscarPorEmail: jest.fn().mockResolvedValue(null),
-      crear: jest.fn().mockImplementation((usuario) =>
-        Promise.resolve(
-          new Usuario(
-            'id-1',
-            usuario.nombre,
-            usuario.email,
-            usuario.password,
-            usuario.rol,
-            new Date(),
+      buscarPorNumeroDocumento: jest.fn().mockResolvedValue(null),
+      crear: jest
+        .fn()
+        .mockImplementation((usuario) =>
+          Promise.resolve(
+            new Usuario(
+              'id-1',
+              usuario.numeroDocumento,
+              usuario.tipoDocumento,
+              usuario.nombres,
+              usuario.apellidos,
+              usuario.email,
+              usuario.password,
+              usuario.telefono ?? null,
+              usuario.rol,
+              new Date(),
+            ),
           ),
         ),
-      ),
     });
     const useCase = new CrearUsuarioUseCase(repositorio);
 
@@ -90,23 +141,33 @@ describe('CrearUsuarioUseCase', () => {
   it('respeta el rol explícito del dto', async () => {
     const repositorio = crearRepositorioFalso({
       buscarPorEmail: jest.fn().mockResolvedValue(null),
-      crear: jest.fn().mockImplementation((usuario) =>
-        Promise.resolve(
-          new Usuario(
-            'id-1',
-            usuario.nombre,
-            usuario.email,
-            usuario.password,
-            usuario.rol,
-            new Date(),
+      buscarPorNumeroDocumento: jest.fn().mockResolvedValue(null),
+      crear: jest
+        .fn()
+        .mockImplementation((usuario) =>
+          Promise.resolve(
+            new Usuario(
+              'id-1',
+              usuario.numeroDocumento,
+              usuario.tipoDocumento,
+              usuario.nombres,
+              usuario.apellidos,
+              usuario.email,
+              usuario.password,
+              usuario.telefono ?? null,
+              usuario.rol,
+              new Date(),
+            ),
           ),
         ),
-      ),
     });
     const useCase = new CrearUsuarioUseCase(repositorio);
 
     await useCase.ejecutar({
-      nombre: dto.nombre,
+      numeroDocumento: dto.numeroDocumento,
+      tipoDocumento: dto.tipoDocumento,
+      nombres: dto.nombres,
+      apellidos: dto.apellidos,
       email: dto.email,
       password: dto.password,
       rol: Rol.ADMIN,
