@@ -36,11 +36,16 @@ docker compose up -d
 # 4. Aplicar las migraciones y generar el cliente de Prisma
 npx prisma migrate dev
 
-# 5. Levantar la API en modo desarrollo
+# 5. Cargar datos de demostración (admin, personal, paciente, entidad,
+#    sede, servicios y ventanilla — ver sección "Demo" más abajo)
+npm run db:seed
+
+# 6. Levantar la API en modo desarrollo
 npm run start:dev
 ```
 
 La API queda disponible en `http://localhost:3000` (o el puerto que definas en `PORT`).
+La documentación interactiva (Swagger) queda en **http://localhost:3000/api/docs**.
 
 ## Variables de entorno
 
@@ -66,6 +71,7 @@ Ver [.env.example](./.env.example).
 | `npm run test:cov` | Pruebas con reporte de cobertura |
 | `npx prisma studio` | Explorador visual de la base de datos |
 | `npx prisma migrate dev` | Crea y aplica una migración a partir de cambios en `prisma/schema.prisma` |
+| `npm run db:seed` | Carga los datos de demostración (ver sección "Demo") |
 
 ## Arquitectura
 
@@ -77,7 +83,9 @@ application/     → casos de uso (un caso de uso = una clase con ejecutar()) y 
 infrastructure/  → controllers HTTP, repositorios Prisma y mappers dominio↔Prisma
 ```
 
-Módulos actuales: `auth`, `usuarios`, `entidades-medicas`, `servicios`, `turnos`.
+Módulos actuales: `auth`, `usuarios`, `entidades-medicas`, `puntos-dispensacion`, `ventanillas`, `servicios`, `turnos`.
+
+Los errores conocidos de Prisma (violación de restricción única, registro no encontrado, violación de FK) se traducen a respuestas HTTP limpias mediante un filtro global (`PrismaExceptionFilter`); nunca deberían verse como un 500 con stacktrace.
 
 ## Autenticación y roles
 
@@ -87,6 +95,27 @@ La API usa JWT Bearer (`Authorization: Bearer <token>`). Hay tres roles (`Rol`):
 - **Rutas autenticadas sin rol específico**: accesibles a cualquier usuario con token válido (p. ej. crear tu propio turno).
 - **Rutas restringidas por rol** (`@Roles(...)`): por ejemplo, crear entidades médicas o servicios, listar todos los usuarios, o gestionar la fila (`avanzar` un turno) son operaciones de `ADMIN`/`FUNCIONARIO`.
 - Los guards (`JwtAuthGuard`, `RolesGuard`) están registrados **globalmente**; una ruta nueva requiere autenticación por defecto salvo que se marque explícitamente con `@Public()`.
+
+## Demo
+
+`npm run db:seed` crea (de forma idempotente — se puede correr varias veces sin duplicar datos) tres usuarios y un catálogo básico para probar el flujo completo sin tocar la base de datos a mano:
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| ADMIN | `admin@filacero.demo` | `FilaCero2026!` |
+| FUNCIONARIO | `funcionario@filacero.demo` | `FilaCero2026!` |
+| PACIENTE | `paciente@filacero.demo` | `FilaCero2026!` |
+
+Más una `EntidadMedica` ("Nueva EPS"), un `PuntoDispensacion` ("Sede Fusagasugá"), dos `Servicio` y una `Ventanilla` ya creados. El script imprime los IDs generados al terminar.
+
+**Guion de demo sugerido** (las tres funcionalidades núcleo, en orden), todo probable desde `http://localhost:3000/api/docs`:
+
+1. **Autenticación** — `POST /auth/login` con `paciente@filacero.demo`. Copiar el `accessToken` de la respuesta y pegarlo en el botón **Authorize** de Swagger (arriba a la derecha) para autenticar el resto de las pruebas.
+2. **Catálogo** — `GET /servicios` y `GET /puntos-dispensacion` (públicos, no requieren el candado) para mostrar los servicios y sedes disponibles.
+3. **Turnos** —
+   - `POST /turnos` con el `servicioId` y `puntoId` obtenidos del catálogo: crea el turno y muestra la posición en la fila.
+   - `GET /turnos/mis-turnos`: el paciente ve su propio turno y su posición — esta es la pantalla central del producto.
+   - Cerrar sesión de paciente y autenticar con `funcionario@filacero.demo`. `GET /ventanillas?puntoId=<puntoId>` para obtener una ventanilla, luego `PATCH /turnos/{id}/avanzar` con `{"ventanillaId": "..."}` para llamar el turno (PENDIENTE → EN_CURSO), y de nuevo sin body para finalizar la atención (EN_CURSO → ATENDIDO).
 
 ## Pruebas
 
