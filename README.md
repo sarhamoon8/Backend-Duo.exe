@@ -58,6 +58,13 @@ La documentación interactiva (Swagger) queda en **http://localhost:3000/api/doc
 
 Ver [.env.example](./.env.example).
 
+### Estrategia de entornos
+
+- **Hoy existe un solo entorno real**: desarrollo local. Cada persona del equipo tiene su propio `.env` (nunca se sube a Git — ver `.gitignore`), con sus propios valores, copiado a partir de `.env.example`.
+- Las tres ramas de Git (`desarrollo`, `pre-produccion`, `main`) representan **etapas de madurez del código**, no tres servidores físicamente distintos — las tres corren hoy contra la misma configuración local de cada quien.
+- **Regla que se mantiene sin importar cuántos entornos reales lleguen a existir**: ningún archivo `.env` con valores reales se comitea. Lo único que se versiona es `.env.example`, como documentación de qué variables existen — nunca sus valores reales.
+- Cuando el proyecto tenga un despliegue real (o se integre un servicio externo, como el de notificaciones), cada entorno va a necesitar sus propios valores para las variables sensibles — como mínimo, un `JWT_SECRET` distinto por entorno, y credenciales de servicios externos que nunca se comparten entre desarrollo y producción. Esos valores reales viven en el sistema de configuración de cada entorno (variables de entorno del proveedor de hosting, secretos de CI/CD), no como archivos dentro del repositorio.
+
 ## Scripts disponibles
 
 | Comando | Qué hace |
