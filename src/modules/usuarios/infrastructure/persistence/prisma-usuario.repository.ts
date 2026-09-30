@@ -34,7 +34,11 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
   }
 
   async buscarPorEmail(email: string): Promise<Usuario | null> {
-    const usuario = await this.prisma.usuario.findUnique({ where: { email } });
+    // insensitive: el email no debe distinguir mayúsculas/minúsculas (una
+    // cuenta creada como "Ana@x.com" debe poder iniciar sesión con "ana@x.com").
+    const usuario = await this.prisma.usuario.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } },
+    });
     return usuario ? UsuarioMapper.toDomain(usuario) : null;
   }
 
