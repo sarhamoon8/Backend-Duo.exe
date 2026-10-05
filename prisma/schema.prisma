@@ -25,6 +25,7 @@ model Usuario {
   rol             Rol      @default(PACIENTE)
   creadoEn        DateTime @default(now())
   turnos          Turno[]
+  listasEspera    ListaEspera[]
 }
 
 enum Rol {
@@ -53,6 +54,7 @@ model Servicio {
   entidad           EntidadMedica @relation(fields: [entidadId], references: [id])
   entidadId         String
   turnos            Turno[]
+  listasEspera      ListaEspera[]
 }
 
 // Sede física de una EntidadMedica (PUNTO_DISPENSACION en el modelo
@@ -69,6 +71,7 @@ model PuntoDispensacion {
   ventanillas       Ventanilla[]
   turnos            Turno[]
   inventario        Inventario[]
+  listasEspera      ListaEspera[]
 }
 
 enum EstadoOperativoVentanilla {
@@ -151,4 +154,24 @@ model Inventario {
   creadoEn          DateTime          @default(now())
 
   @@unique([puntoId, medicamentoId, lote])
+}
+
+// RF-04: lista de espera por servicio+punto. A diferencia de Turno, una
+// entrada acá no es un registro histórico que valga la pena conservar:
+// o se promueve a un turno real (que sí queda en el historial), o el
+// usuario se retira voluntariamente. Por eso sí se borra físicamente
+// (ver ListaEsperaRepository.eliminar), a diferencia de los turnos que
+// siempre se "cancelan" cambiando su estado.
+model ListaEspera {
+  id                String            @id @default(uuid())
+  usuario           Usuario           @relation(fields: [usuarioId], references: [id])
+  usuarioId         String
+  servicio          Servicio          @relation(fields: [servicioId], references: [id])
+  servicioId        String
+  puntoDispensacion PuntoDispensacion @relation(fields: [puntoId], references: [id])
+  puntoId           String
+  creadoEn          DateTime          @default(now())
+
+  @@unique([usuarioId, servicioId, puntoId])
+  @@index([servicioId, puntoId])
 }

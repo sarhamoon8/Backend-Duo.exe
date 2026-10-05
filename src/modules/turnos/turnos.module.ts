@@ -3,6 +3,7 @@ import { UsuariosModule } from '../usuarios/usuarios.module';
 import { ServiciosModule } from '../servicios/servicios.module';
 import { PuntosDispensacionModule } from '../puntos-dispensacion/puntos-dispensacion.module';
 import { VentanillasModule } from '../ventanillas/ventanillas.module';
+import { ListaEsperaModule } from '../lista-espera/lista-espera.module';
 import { TurnoController } from './infrastructure/http/turno.controller';
 import { PrismaTurnoRepository } from './infrastructure/persistence/prisma-turno.repository';
 import { TURNO_REPOSITORY } from './domain/turno.repository';
@@ -13,6 +14,7 @@ import { ListarTurnosPorPuntoUseCase } from './application/use-cases/listar-turn
 import { ListarMisTurnosUseCase } from './application/use-cases/listar-mis-turnos.use-case';
 import { ObtenerTurnoUseCase } from './application/use-cases/obtener-turno.use-case';
 import { ObtenerPosicionTurnoUseCase } from './application/use-cases/obtener-posicion-turno.use-case';
+import { ReasignarDesdeListaEsperaUseCase } from './application/use-cases/reasignar-desde-lista-espera.use-case';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { ObtenerPosicionTurnoUseCase } from './application/use-cases/obtener-pos
     ServiciosModule,
     PuntosDispensacionModule,
     VentanillasModule,
+    ListaEsperaModule,
   ],
   controllers: [TurnoController],
   providers: [
@@ -30,6 +33,7 @@ import { ObtenerPosicionTurnoUseCase } from './application/use-cases/obtener-pos
     ListarMisTurnosUseCase,
     ObtenerTurnoUseCase,
     ObtenerPosicionTurnoUseCase,
+    ReasignarDesdeListaEsperaUseCase,
     { provide: TURNO_REPOSITORY, useClass: PrismaTurnoRepository },
   ],
 })

@@ -10,6 +10,7 @@ import { Turno } from '../../domain/turno.entity';
 import { TURNO_REPOSITORY } from '../../domain/turno.repository';
 import type { TurnoRepository } from '../../domain/turno.repository';
 import { Rol } from '../../../usuarios/domain/rol.enum';
+import { ReasignarDesdeListaEsperaUseCase } from './reasignar-desde-lista-espera.use-case';
 
 const ROLES_STAFF = [Rol.FUNCIONARIO, Rol.ADMIN];
 
@@ -23,6 +24,7 @@ export class CancelarTurnoUseCase {
   constructor(
     @Inject(TURNO_REPOSITORY)
     private readonly turnoRepository: TurnoRepository,
+    private readonly reasignarDesdeListaEsperaUseCase: ReasignarDesdeListaEsperaUseCase,
   ) {}
 
   async ejecutar(id: string, actor: ActorCancelacion): Promise<Turno> {
@@ -45,6 +47,22 @@ export class CancelarTurnoUseCase {
       );
     }
 
-    return this.turnoRepository.actualizarEstado(id, EstadoTurno.CANCELADO);
+    const eraPendiente = turno.estado === EstadoTurno.PENDIENTE;
+    const cancelado = await this.turnoRepository.actualizarEstado(
+      id,
+      EstadoTurno.CANCELADO,
+    );
+
+    // RF-04: solo tiene sentido ofrecer el cupo si lo que se liberó era
+    // una posición en fila (PENDIENTE). Cancelar un turno EN_CURSO no
+    // libera un espacio de esos.
+    if (eraPendiente) {
+      await this.reasignarDesdeListaEsperaUseCase.ejecutar(
+        turno.servicioId,
+        turno.puntoId,
+      );
+    }
+
+    return cancelado;
   }
 }

@@ -35,6 +35,7 @@ async function bootstrap() {
     .addTag('ventanillas', 'Módulos de atención de un punto de dispensación')
     .addTag('servicios', 'Servicios de dispensación ofrecidos')
     .addTag('turnos', 'Solicitud y gestión de turnos')
+    .addTag('lista-espera', 'Lista de espera y reasignación automática (RF-04)')
     .addTag('medicamentos', 'Catálogo de medicamentos')
     .addTag('inventario', 'Disponibilidad de medicamentos por punto (RF-06)')
     .build();
