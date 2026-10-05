@@ -10,6 +10,8 @@ import { ServiciosModule } from './modules/servicios/servicios.module';
 import { TurnosModule } from './modules/turnos/turnos.module';
 import { PuntosDispensacionModule } from './modules/puntos-dispensacion/puntos-dispensacion.module';
 import { VentanillasModule } from './modules/ventanillas/ventanillas.module';
+import { MedicamentosModule } from './modules/medicamentos/medicamentos.module';
+import { InventarioModule } from './modules/inventario/inventario.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { VentanillasModule } from './modules/ventanillas/ventanillas.module';
     PuntosDispensacionModule,
     VentanillasModule,
     TurnosModule,
+    MedicamentosModule,
+    InventarioModule,
   ],
   controllers: [AppController],
   providers: [AppService],

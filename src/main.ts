@@ -35,6 +35,8 @@ async function bootstrap() {
     .addTag('ventanillas', 'Módulos de atención de un punto de dispensación')
     .addTag('servicios', 'Servicios de dispensación ofrecidos')
     .addTag('turnos', 'Solicitud y gestión de turnos')
+    .addTag('medicamentos', 'Catálogo de medicamentos')
+    .addTag('inventario', 'Disponibilidad de medicamentos por punto (RF-06)')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

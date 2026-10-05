@@ -68,6 +68,7 @@ model PuntoDispensacion {
   capacidadAtencion Int
   ventanillas       Ventanilla[]
   turnos            Turno[]
+  inventario        Inventario[]
 }
 
 enum EstadoOperativoVentanilla {
@@ -116,4 +117,38 @@ enum EstadoTurno {
   EN_CURSO
   ATENDIDO
   CANCELADO
+}
+
+// RF-06: catálogo de medicamentos (MEDICAMENTO en el modelo relacional
+// completo, sección 15.1 de PROJECT_CONTEXT.md). Solo el catálogo y su
+// disponibilidad por punto (Inventario); reserva (RF-07) queda para después.
+model Medicamento {
+  id                    String       @id @default(uuid())
+  codigoNacional        String       @unique
+  nombreGenerico        String
+  concentracion         String
+  presentacion          String
+  laboratorioFabricante String
+  requiereAutorizacion  Boolean      @default(false)
+  creadoEn              DateTime     @default(now())
+  inventario            Inventario[]
+}
+
+// Disponibilidad de un medicamento (por lote) en un punto de dispensación
+// concreto. stockReservado queda en 0 hasta que se implemente RF-07
+// (reserva de medicamentos) — el campo ya existe porque es parte del
+// modelo de datos acordado desde el inicio del proyecto, no se inventa.
+model Inventario {
+  id                String            @id @default(uuid())
+  puntoDispensacion PuntoDispensacion @relation(fields: [puntoId], references: [id])
+  puntoId           String
+  medicamento       Medicamento       @relation(fields: [medicamentoId], references: [id])
+  medicamentoId     String
+  lote              String
+  stockActual       Int
+  stockReservado    Int               @default(0)
+  fechaVencimiento  DateTime
+  creadoEn          DateTime          @default(now())
+
+  @@unique([puntoId, medicamentoId, lote])
 }
