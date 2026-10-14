@@ -52,7 +52,30 @@ La documentación interactiva (Swagger) queda en **http://localhost:3000/api/doc
 
 El `docker-compose.yml` de este repo construye y orquesta los **tres** componentes: `database` (Postgres), `backend` (esta API) y `frontend` (repo aparte, Next.js). No se necesita `npm install` ni `.env` para esto — todo corre contenerizado.
 
-**Requisito indispensable:** el repo del frontend debe estar clonado **al lado** de este (como carpeta hermana), por defecto con el nombre `Fronted-Duo.exe`:
+### Opción rápida: un solo comando
+
+Si **solo clonaste este repo** (no el del frontend), corre el script de arranque: clona el repo del frontend por ti (rama `desarrollo`, al lado de este) y levanta todo.
+
+```powershell
+# PowerShell
+.\setup.ps1
+```
+
+```bash
+# bash / macOS / Linux
+./setup.sh
+```
+
+Si ya tienes el frontend clonado en otra ruta o con otro nombre, decile al script dónde está (sin tocar el `docker-compose.yml`):
+
+```powershell
+$env:FRONTEND_PATH = "../nombre-real-de-la-carpeta-del-frontend"
+.\setup.ps1
+```
+
+### Opción manual
+
+**Requisito:** el repo del frontend debe estar clonado **al lado** de este (como carpeta hermana), por defecto con el nombre `Fronted-Duo.exe`:
 
 ```
 Documents/
@@ -64,13 +87,6 @@ Si en tu máquina el repo del frontend quedó en otro nombre o ruta, no edites e
 
 ```
 FRONTEND_PATH=../nombre-real-de-la-carpeta-del-frontend
-```
-
-o pasa la variable directo al comando:
-
-```powershell
-$env:FRONTEND_PATH = "../nombre-real-de-la-carpeta-del-frontend"
-docker compose up --build
 ```
 
 Luego, desde PowerShell o bash, parados en este repo:
