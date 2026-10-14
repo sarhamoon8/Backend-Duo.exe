@@ -48,6 +48,44 @@ npm run start:dev
 La API queda disponible en `http://localhost:3000` (o el puerto que definas en `PORT`).
 La documentación interactiva (Swagger) queda en **http://localhost:3000/api/docs**.
 
+## Levantar todo con Docker (backend + frontend + base de datos)
+
+El `docker-compose.yml` de este repo construye y orquesta los **tres** componentes: `database` (Postgres), `backend` (esta API) y `frontend` (repo aparte, Next.js). No se necesita `npm install` ni `.env` para esto — todo corre contenerizado.
+
+**Requisito indispensable:** el repo del frontend debe estar clonado **al lado** de este (como carpeta hermana), por defecto con el nombre `Fronted-Duo.exe`:
+
+```
+Documents/
+├── filacero-backend/   ← este repo (aquí vive el docker-compose.yml)
+└── Fronted-Duo.exe/    ← repo del frontend
+```
+
+Si en tu máquina el repo del frontend quedó en otro nombre o ruta, no edites el `docker-compose.yml`: crea un archivo `.env` en la raíz de este repo (es un archivo distinto al `.env` de la API — Docker Compose lo lee aparte, solo para sustituir variables dentro del `.yml`) con:
+
+```
+FRONTEND_PATH=../nombre-real-de-la-carpeta-del-frontend
+```
+
+o pasa la variable directo al comando:
+
+```powershell
+$env:FRONTEND_PATH = "../nombre-real-de-la-carpeta-del-frontend"
+docker compose up --build
+```
+
+Luego, desde PowerShell o bash, parados en este repo:
+
+```bash
+docker compose up --build
+```
+
+Esto deja:
+- API en `http://localhost:3000` (Swagger en `/api/docs`)
+- Frontend en `http://localhost:3001`
+- Postgres en el puerto `5432`
+
+Las migraciones de Prisma se aplican solas al arrancar el contenedor del backend (no hace falta correr `npx prisma migrate` a mano). Para bajar el stack: `docker compose down` (agrega `-v` solo si además quieres borrar los datos de Postgres).
+
 ## Variables de entorno
 
 | Variable | Descripción |

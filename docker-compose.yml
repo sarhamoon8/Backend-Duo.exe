@@ -1,5 +1,5 @@
 services:
-  db:
+  database:
     image: postgres:16
     environment:
       POSTGRES_USER: filacero
@@ -9,6 +9,44 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U filacero -d filacero_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: filacero-backend:latest
+    environment:
+      DATABASE_URL: postgresql://filacero:filacero@database:5432/filacero_db?schema=public
+      JWT_SECRET: dev-secret-change-me
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ${FRONTEND_PATH:-../Fronted-Duo.exe}
+      dockerfile: Dockerfile
+    image: filacero-frontend:latest
+    environment:
+      API_URL: http://backend:3000
+      AUTH_COOKIE_NAME: filacero_token
+      PORT: "3001"
+    ports:
+      - "3001:3001"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
-  pgdata: 
-  
+  pgdata:
