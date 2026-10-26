@@ -6,6 +6,7 @@ import { EstadoTurno } from '../../domain/estado-turno.enum';
 import { VentanillaRepository } from '../../../ventanillas/domain/ventanilla.repository';
 import { Ventanilla } from '../../../ventanillas/domain/ventanilla.entity';
 import { EstadoOperativoVentanilla } from '../../../ventanillas/domain/estado-operativo-ventanilla.enum';
+import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
 
 function crearRepositorioTurnoFalso(
   overrides: Partial<TurnoRepository> = {},
@@ -31,6 +32,12 @@ function crearRepositorioVentanillaFalso(
     listarPorPunto: jest.fn(),
     ...overrides,
   } as jest.Mocked<VentanillaRepository>;
+}
+
+function crearEnviarNotificacionFalso(): jest.Mocked<EnviarNotificacionUseCase> {
+  return {
+    ejecutar: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<EnviarNotificacionUseCase>;
 }
 
 function crearTurno(estado: EstadoTurno, puntoId = 'punto-1'): Turno {
@@ -70,7 +77,7 @@ describe('AvanzarTurnoUseCase', () => {
       buscarPorId: jest.fn().mockResolvedValue(null),
     });
     const ventanillas = crearRepositorioVentanillaFalso();
-    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas);
+    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas, crearEnviarNotificacionFalso());
 
     await expect(
       useCase.ejecutar('inexistente', 'ventanilla-1'),
@@ -83,7 +90,7 @@ describe('AvanzarTurnoUseCase', () => {
       buscarPorId: jest.fn().mockResolvedValue(turno),
     });
     const ventanillas = crearRepositorioVentanillaFalso();
-    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas);
+    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas, crearEnviarNotificacionFalso());
 
     await expect(useCase.ejecutar(turno.id)).rejects.toBeInstanceOf(
       BadRequestException,
@@ -101,7 +108,7 @@ describe('AvanzarTurnoUseCase', () => {
         .fn()
         .mockResolvedValue(crearVentanilla({ puntoId: 'punto-2' })),
     });
-    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas);
+    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas, crearEnviarNotificacionFalso());
 
     await expect(
       useCase.ejecutar(turno.id, 'ventanilla-1'),
@@ -122,7 +129,7 @@ describe('AvanzarTurnoUseCase', () => {
         }),
       ),
     });
-    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas);
+    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas, crearEnviarNotificacionFalso());
 
     await expect(
       useCase.ejecutar(turno.id, 'ventanilla-1'),
@@ -142,7 +149,7 @@ describe('AvanzarTurnoUseCase', () => {
         .fn()
         .mockResolvedValue(crearVentanilla({ puntoId: 'punto-1' })),
     });
-    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas);
+    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas, crearEnviarNotificacionFalso());
 
     await useCase.ejecutar(turno.id, 'ventanilla-1');
 
@@ -161,7 +168,7 @@ describe('AvanzarTurnoUseCase', () => {
         .mockResolvedValue(crearTurno(EstadoTurno.ATENDIDO)),
     });
     const ventanillas = crearRepositorioVentanillaFalso();
-    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas);
+    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas, crearEnviarNotificacionFalso());
 
     await useCase.ejecutar(turno.id);
 
@@ -176,7 +183,7 @@ describe('AvanzarTurnoUseCase', () => {
         buscarPorId: jest.fn().mockResolvedValue(turno),
       });
       const ventanillas = crearRepositorioVentanillaFalso();
-      const useCase = new AvanzarTurnoUseCase(turnos, ventanillas);
+      const useCase = new AvanzarTurnoUseCase(turnos, ventanillas, crearEnviarNotificacionFalso());
 
       await expect(useCase.ejecutar(turno.id)).rejects.toBeInstanceOf(
         BadRequestException,

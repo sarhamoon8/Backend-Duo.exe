@@ -5,6 +5,8 @@ import type { TurnoRepository } from '../../domain/turno.repository';
 import { LISTA_ESPERA_REPOSITORY } from '../../../lista-espera/domain/lista-espera.repository';
 import type { ListaEsperaRepository } from '../../../lista-espera/domain/lista-espera.repository';
 import { generarCodigoTurno } from '../../domain/generar-codigo-turno';
+import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
+import { TipoNotificacion } from '../../../notificaciones/domain/tipo-notificacion.enum';
 
 // RF-04: cuando un turno PENDIENTE se cancela, le da automáticamente ese
 // cupo liberado al primero de la lista de espera del mismo servicio+punto
@@ -17,6 +19,7 @@ export class ReasignarDesdeListaEsperaUseCase {
     private readonly turnoRepository: TurnoRepository,
     @Inject(LISTA_ESPERA_REPOSITORY)
     private readonly listaEsperaRepository: ListaEsperaRepository,
+    private readonly enviarNotificacionUseCase: EnviarNotificacionUseCase,
   ) {}
 
   async ejecutar(servicioId: string, puntoId: string): Promise<Turno | null> {
@@ -36,6 +39,16 @@ export class ReasignarDesdeListaEsperaUseCase {
     });
 
     await this.listaEsperaRepository.eliminar(siguiente.id);
+
+    // RF-05: "nuevas oportunidades de citas" — se liberó un cupo y esta
+    // persona, que solo estaba en lista de espera, ahora tiene un turno
+    // real sin haber hecho nada.
+    await this.enviarNotificacionUseCase.ejecutar(
+      siguiente.usuarioId,
+      TipoNotificacion.TURNO_REASIGNADO,
+      'Se liberó un turno para ti',
+      `Un cupo se liberó y te asignamos el turno ${turno.codigoAlfanumerico}.`,
+    );
 
     return turno;
   }

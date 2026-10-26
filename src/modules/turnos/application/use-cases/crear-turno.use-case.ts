@@ -15,6 +15,8 @@ import { PUNTO_DISPENSACION_REPOSITORY } from '../../../puntos-dispensacion/doma
 import type { PuntoDispensacionRepository } from '../../../puntos-dispensacion/domain/punto-dispensacion.repository';
 import { CrearTurnoDto } from '../dto/crear-turno.dto';
 import { generarCodigoTurno } from '../../domain/generar-codigo-turno';
+import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
+import { TipoNotificacion } from '../../../notificaciones/domain/tipo-notificacion.enum';
 
 @Injectable()
 export class CrearTurnoUseCase {
@@ -27,6 +29,7 @@ export class CrearTurnoUseCase {
     private readonly servicioRepository: ServicioRepository,
     @Inject(PUNTO_DISPENSACION_REPOSITORY)
     private readonly puntoDispensacionRepository: PuntoDispensacionRepository,
+    private readonly enviarNotificacionUseCase: EnviarNotificacionUseCase,
   ) {}
 
   async ejecutar(dto: CrearTurnoDto, usuarioId: string): Promise<Turno> {
@@ -60,11 +63,24 @@ export class CrearTurnoUseCase {
       );
     }
 
-    return this.turnoRepository.crear({
+    const turno = await this.turnoRepository.crear({
       usuarioId,
       servicioId: dto.servicioId,
       puntoId: dto.puntoId,
       codigoAlfanumerico: generarCodigoTurno(),
     });
+
+    // RF-05: no se espera a que esto termine el request del cliente más
+    // de lo necesario, pero sí se espera la promesa (await) porque
+    // EnviarNotificacionUseCase ya atrapa sus propios errores y nunca
+    // rechaza — nunca puede tumbar la creación del turno.
+    await this.enviarNotificacionUseCase.ejecutar(
+      usuarioId,
+      TipoNotificacion.TURNO_CREADO,
+      'Turno creado',
+      `Se creó tu turno ${turno.codigoAlfanumerico} para el servicio "${servicio.nombre}" en ${punto.nombreSede}.`,
+    );
+
+    return turno;
   }
 }

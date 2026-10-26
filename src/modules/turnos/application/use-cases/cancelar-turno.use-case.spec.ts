@@ -9,6 +9,7 @@ import { TurnoRepository } from '../../domain/turno.repository';
 import { Turno } from '../../domain/turno.entity';
 import { EstadoTurno } from '../../domain/estado-turno.enum';
 import { Rol } from '../../../usuarios/domain/rol.enum';
+import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
 
 function crearRepositorioFalso(
   overrides: Partial<TurnoRepository> = {},
@@ -29,6 +30,12 @@ function crearReasignarFalso(): jest.Mocked<ReasignarDesdeListaEsperaUseCase> {
   return {
     ejecutar: jest.fn().mockResolvedValue(null),
   } as unknown as jest.Mocked<ReasignarDesdeListaEsperaUseCase>;
+}
+
+function crearEnviarNotificacionFalso(): jest.Mocked<EnviarNotificacionUseCase> {
+  return {
+    ejecutar: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<EnviarNotificacionUseCase>;
 }
 
 function crearTurno(estado: EstadoTurno, usuarioId = 'usuario-1'): Turno {
@@ -52,7 +59,7 @@ describe('CancelarTurnoUseCase', () => {
     const repositorio = crearRepositorioFalso({
       buscarPorId: jest.fn().mockResolvedValue(null),
     });
-    const useCase = new CancelarTurnoUseCase(repositorio, crearReasignarFalso());
+    const useCase = new CancelarTurnoUseCase(repositorio, crearReasignarFalso(), crearEnviarNotificacionFalso());
 
     await expect(
       useCase.ejecutar('inexistente', { id: 'usuario-1', rol: Rol.PACIENTE }),
@@ -67,7 +74,7 @@ describe('CancelarTurnoUseCase', () => {
         .fn()
         .mockResolvedValue(crearTurno(EstadoTurno.CANCELADO, 'usuario-1')),
     });
-    const useCase = new CancelarTurnoUseCase(repositorio, crearReasignarFalso());
+    const useCase = new CancelarTurnoUseCase(repositorio, crearReasignarFalso(), crearEnviarNotificacionFalso());
 
     await useCase.ejecutar(turno.id, { id: 'usuario-1', rol: Rol.PACIENTE });
 
@@ -82,7 +89,7 @@ describe('CancelarTurnoUseCase', () => {
     const repositorio = crearRepositorioFalso({
       buscarPorId: jest.fn().mockResolvedValue(turno),
     });
-    const useCase = new CancelarTurnoUseCase(repositorio, crearReasignarFalso());
+    const useCase = new CancelarTurnoUseCase(repositorio, crearReasignarFalso(), crearEnviarNotificacionFalso());
 
     await expect(
       useCase.ejecutar(turno.id, { id: 'usuario-2', rol: Rol.PACIENTE }),
@@ -98,7 +105,7 @@ describe('CancelarTurnoUseCase', () => {
         .fn()
         .mockResolvedValue(crearTurno(EstadoTurno.CANCELADO, 'usuario-1')),
     });
-    const useCase = new CancelarTurnoUseCase(repositorio, crearReasignarFalso());
+    const useCase = new CancelarTurnoUseCase(repositorio, crearReasignarFalso(), crearEnviarNotificacionFalso());
 
     await useCase.ejecutar(turno.id, {
       id: 'funcionario-9',
@@ -118,7 +125,7 @@ describe('CancelarTurnoUseCase', () => {
       const repositorio = crearRepositorioFalso({
         buscarPorId: jest.fn().mockResolvedValue(turno),
       });
-      const useCase = new CancelarTurnoUseCase(repositorio, crearReasignarFalso());
+      const useCase = new CancelarTurnoUseCase(repositorio, crearReasignarFalso(), crearEnviarNotificacionFalso());
 
       await expect(
         useCase.ejecutar(turno.id, { id: 'usuario-1', rol: Rol.PACIENTE }),
@@ -135,7 +142,7 @@ describe('CancelarTurnoUseCase', () => {
         .mockResolvedValue(crearTurno(EstadoTurno.CANCELADO, 'usuario-1')),
     });
     const reasignar = crearReasignarFalso();
-    const useCase = new CancelarTurnoUseCase(repositorio, reasignar);
+    const useCase = new CancelarTurnoUseCase(repositorio, reasignar, crearEnviarNotificacionFalso());
 
     await useCase.ejecutar(turno.id, { id: 'usuario-1', rol: Rol.PACIENTE });
 
@@ -154,7 +161,7 @@ describe('CancelarTurnoUseCase', () => {
         .mockResolvedValue(crearTurno(EstadoTurno.CANCELADO, 'usuario-1')),
     });
     const reasignar = crearReasignarFalso();
-    const useCase = new CancelarTurnoUseCase(repositorio, reasignar);
+    const useCase = new CancelarTurnoUseCase(repositorio, reasignar, crearEnviarNotificacionFalso());
 
     await useCase.ejecutar(turno.id, { id: 'usuario-1', rol: Rol.PACIENTE });
 

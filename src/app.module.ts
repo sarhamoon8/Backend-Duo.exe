@@ -13,6 +13,7 @@ import { VentanillasModule } from './modules/ventanillas/ventanillas.module';
 import { MedicamentosModule } from './modules/medicamentos/medicamentos.module';
 import { InventarioModule } from './modules/inventario/inventario.module';
 import { ListaEsperaModule } from './modules/lista-espera/lista-espera.module';
+import { NotificacionesModule } from './modules/notificaciones/notificaciones.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ListaEsperaModule } from './modules/lista-espera/lista-espera.module';
     PuntosDispensacionModule,
     VentanillasModule,
     ListaEsperaModule,
+    NotificacionesModule,
     TurnosModule,
     MedicamentosModule,
     InventarioModule,

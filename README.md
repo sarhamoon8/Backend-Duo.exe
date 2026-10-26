@@ -109,6 +109,8 @@ Las migraciones de Prisma se aplican solas al arrancar el contenedor del backend
 | `DATABASE_URL` | Cadena de conexión a PostgreSQL. Por defecto apunta al contenedor de `docker-compose.yml`. |
 | `JWT_SECRET` | Secreto para firmar/verificar los JWT. **Cambiar en cualquier entorno que no sea desarrollo local.** |
 | `PORT` | Puerto HTTP de la API (opcional, por defecto `3000`). |
+| `RESEND_API_KEY` | API key de [Resend](https://resend.com) para las notificaciones por correo (RF-05). Sin ella, el correo simplemente no se envía y queda registrado como `FALLIDA`; no tumba el backend. |
+| `RESEND_FROM_EMAIL` | Remitente que verá el usuario en el correo. Con el dominio de pruebas de Resend (sin dominio propio verificado), solo llegan correos a la cuenta con la que te registraste en Resend. |
 
 Ver [.env.example](./.env.example).
 

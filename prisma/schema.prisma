@@ -26,12 +26,45 @@ model Usuario {
   creadoEn        DateTime @default(now())
   turnos          Turno[]
   listasEspera    ListaEspera[]
+  notificaciones  Notificacion[]
 }
 
 enum Rol {
   PACIENTE
   FUNCIONARIO
   ADMIN
+}
+
+// RF-05: cada evento relevante del flujo de turnos genera un registro aquí
+// (historial consultable desde /notificaciones/mis-notificaciones) y, en
+// paralelo, un intento de envío por correo vía Resend. El envío de correo
+// nunca bloquea el flujo que lo origina (ver EnviarNotificacionUseCase):
+// si Resend falla o no hay API key configurada, igual queda el registro
+// con estadoEnvio FALLIDA.
+model Notificacion {
+  id          String                    @id @default(uuid())
+  usuario     Usuario                   @relation(fields: [usuarioId], references: [id])
+  usuarioId   String
+  tipo        TipoNotificacion
+  titulo      String
+  mensaje     String
+  estadoEnvio EstadoEnvioNotificacion
+  leida       Boolean                   @default(false)
+  creadoEn    DateTime                  @default(now())
+
+  @@index([usuarioId])
+}
+
+enum TipoNotificacion {
+  TURNO_CREADO
+  TURNO_CANCELADO
+  TURNO_EN_CURSO
+  TURNO_REASIGNADO
+}
+
+enum EstadoEnvioNotificacion {
+  ENVIADA
+  FALLIDA
 }
 
 // La institución de salud (EPS, IPS, centro médico). No forma parte del

@@ -4,6 +4,7 @@ import { ServiciosModule } from '../servicios/servicios.module';
 import { PuntosDispensacionModule } from '../puntos-dispensacion/puntos-dispensacion.module';
 import { VentanillasModule } from '../ventanillas/ventanillas.module';
 import { ListaEsperaModule } from '../lista-espera/lista-espera.module';
+import { NotificacionesModule } from '../notificaciones/notificaciones.module';
 import { TurnoController } from './infrastructure/http/turno.controller';
 import { PrismaTurnoRepository } from './infrastructure/persistence/prisma-turno.repository';
 import { TURNO_REPOSITORY } from './domain/turno.repository';
@@ -23,6 +24,7 @@ import { ReasignarDesdeListaEsperaUseCase } from './application/use-cases/reasig
     PuntosDispensacionModule,
     VentanillasModule,
     ListaEsperaModule,
+    NotificacionesModule,
   ],
   controllers: [TurnoController],
   providers: [

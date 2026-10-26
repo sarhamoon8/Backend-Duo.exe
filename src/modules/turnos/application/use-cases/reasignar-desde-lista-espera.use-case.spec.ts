@@ -4,6 +4,7 @@ import { Turno } from '../../domain/turno.entity';
 import { EstadoTurno } from '../../domain/estado-turno.enum';
 import { ListaEsperaRepository } from '../../../lista-espera/domain/lista-espera.repository';
 import { ListaEspera } from '../../../lista-espera/domain/lista-espera.entity';
+import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
 
 function crearTurnoRepoFalso(
   overrides: Partial<TurnoRepository> = {},
@@ -36,6 +37,12 @@ function crearListaEsperaRepoFalso(
   } as jest.Mocked<ListaEsperaRepository>;
 }
 
+function crearEnviarNotificacionFalso(): jest.Mocked<EnviarNotificacionUseCase> {
+  return {
+    ejecutar: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<EnviarNotificacionUseCase>;
+}
+
 describe('ReasignarDesdeListaEsperaUseCase', () => {
   it('no hace nada si no hay nadie en la lista de espera', async () => {
     const turnoRepo = crearTurnoRepoFalso();
@@ -45,6 +52,7 @@ describe('ReasignarDesdeListaEsperaUseCase', () => {
     const useCase = new ReasignarDesdeListaEsperaUseCase(
       turnoRepo,
       listaEsperaRepo,
+      crearEnviarNotificacionFalso(),
     );
 
     const resultado = await useCase.ejecutar('servicio-1', 'punto-1');
@@ -84,6 +92,7 @@ describe('ReasignarDesdeListaEsperaUseCase', () => {
     const useCase = new ReasignarDesdeListaEsperaUseCase(
       turnoRepo,
       listaEsperaRepo,
+      crearEnviarNotificacionFalso(),
     );
 
     const resultado = await useCase.ejecutar('servicio-1', 'punto-1');

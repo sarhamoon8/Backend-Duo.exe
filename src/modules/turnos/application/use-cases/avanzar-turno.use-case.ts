@@ -11,6 +11,8 @@ import type { TurnoRepository } from '../../domain/turno.repository';
 import { VENTANILLA_REPOSITORY } from '../../../ventanillas/domain/ventanilla.repository';
 import type { VentanillaRepository } from '../../../ventanillas/domain/ventanilla.repository';
 import { EstadoOperativoVentanilla } from '../../../ventanillas/domain/estado-operativo-ventanilla.enum';
+import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
+import { TipoNotificacion } from '../../../notificaciones/domain/tipo-notificacion.enum';
 
 @Injectable()
 export class AvanzarTurnoUseCase {
@@ -19,6 +21,7 @@ export class AvanzarTurnoUseCase {
     private readonly turnoRepository: TurnoRepository,
     @Inject(VENTANILLA_REPOSITORY)
     private readonly ventanillaRepository: VentanillaRepository,
+    private readonly enviarNotificacionUseCase: EnviarNotificacionUseCase,
   ) {}
 
   async ejecutar(id: string, ventanillaId?: string): Promise<Turno> {
@@ -65,6 +68,20 @@ export class AvanzarTurnoUseCase {
       throw new BadRequestException('La ventanilla no está activa');
     }
 
-    return this.turnoRepository.iniciarAtencion(turno.id, ventanillaId);
+    const enCurso = await this.turnoRepository.iniciarAtencion(
+      turno.id,
+      ventanillaId,
+    );
+
+    // RF-05: "avance de turno" — es el momento en que al usuario le toca
+    // pasar, el aviso con más valor práctico de todo el flujo.
+    await this.enviarNotificacionUseCase.ejecutar(
+      turno.usuarioId,
+      TipoNotificacion.TURNO_EN_CURSO,
+      'Es tu turno',
+      `Tu turno ${turno.codigoAlfanumerico} está siendo atendido. Dirígete a la ventanilla.`,
+    );
+
+    return enCurso;
   }
 }

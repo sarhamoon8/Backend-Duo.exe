@@ -11,6 +11,8 @@ import { TURNO_REPOSITORY } from '../../domain/turno.repository';
 import type { TurnoRepository } from '../../domain/turno.repository';
 import { Rol } from '../../../usuarios/domain/rol.enum';
 import { ReasignarDesdeListaEsperaUseCase } from './reasignar-desde-lista-espera.use-case';
+import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
+import { TipoNotificacion } from '../../../notificaciones/domain/tipo-notificacion.enum';
 
 const ROLES_STAFF = [Rol.FUNCIONARIO, Rol.ADMIN];
 
@@ -25,6 +27,7 @@ export class CancelarTurnoUseCase {
     @Inject(TURNO_REPOSITORY)
     private readonly turnoRepository: TurnoRepository,
     private readonly reasignarDesdeListaEsperaUseCase: ReasignarDesdeListaEsperaUseCase,
+    private readonly enviarNotificacionUseCase: EnviarNotificacionUseCase,
   ) {}
 
   async ejecutar(id: string, actor: ActorCancelacion): Promise<Turno> {
@@ -51,6 +54,13 @@ export class CancelarTurnoUseCase {
     const cancelado = await this.turnoRepository.actualizarEstado(
       id,
       EstadoTurno.CANCELADO,
+    );
+
+    await this.enviarNotificacionUseCase.ejecutar(
+      turno.usuarioId,
+      TipoNotificacion.TURNO_CANCELADO,
+      'Turno cancelado',
+      `Tu turno ${turno.codigoAlfanumerico} fue cancelado.`,
     );
 
     // RF-04: solo tiene sentido ofrecer el cupo si lo que se liberó era

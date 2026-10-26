@@ -103,6 +103,11 @@ describe('Flujo de autenticación y turnos (e2e)', () => {
 
   afterAll(async () => {
     // Limpieza en orden inverso a las relaciones (hijos antes que padres).
+    // RF-05: crear/cancelar/avanzar un turno dispara una Notificacion
+    // (hija de Usuario), hay que borrarla antes de poder borrar el usuario.
+    await prisma.notificacion.deleteMany({
+      where: { usuario: { email: { in: [emailPaciente, emailFuncionario] } } },
+    });
     await prisma.turno.deleteMany({ where: { puntoId } });
     await prisma.ventanilla.deleteMany({ where: { puntoId } });
     await prisma.servicio.deleteMany({ where: { entidadId } });
