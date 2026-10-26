@@ -107,7 +107,7 @@ describe('EnviarNotificacionUseCase', () => {
       buscarPorId: jest.fn().mockResolvedValue(crearUsuario()),
     });
     const emailProvider = crearEmailProviderFalso({
-      enviar: jest.fn().mockRejectedValue(new Error('Resend caído')),
+      enviar: jest.fn().mockRejectedValue(new Error('Proveedor de correo caído')),
     });
     const notificacionRepo = crearNotificacionRepoFalso({
       crear: jest.fn().mockImplementation((n) =>

@@ -17,7 +17,7 @@ import type { UsuarioRepository } from '../../../usuarios/domain/usuario.reposit
 // de uso que dispara una notificación.
 //
 // El envío de correo NUNCA debe tumbar el flujo que lo origina (crear un
-// turno, cancelarlo, etc.): si Resend falla, no hay API key configurada,
+// turno, cancelarlo, etc.): si el envío de correo falla, no hay credenciales configuradas,
 // o el usuario no existe, se registra la notificación como FALLIDA y se
 // continúa. Por eso este método no lanza excepciones.
 @Injectable()

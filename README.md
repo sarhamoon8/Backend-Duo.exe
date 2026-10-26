@@ -109,9 +109,8 @@ Las migraciones de Prisma se aplican solas al arrancar el contenedor del backend
 | `DATABASE_URL` | Cadena de conexión a PostgreSQL. Por defecto apunta al contenedor de `docker-compose.yml`. |
 | `JWT_SECRET` | Secreto para firmar/verificar los JWT. **Cambiar en cualquier entorno que no sea desarrollo local.** |
 | `PORT` | Puerto HTTP de la API (opcional, por defecto `3000`). |
-| `BREVO_API_KEY` | API key de [Brevo](https://www.brevo.com) para las notificaciones por correo (RF-05). Sin ella, el correo simplemente no se envía y queda registrado como `FALLIDA`; no tumba el backend. |
-| `BREVO_FROM_EMAIL` | Remitente que verá el usuario en el correo. Debe estar verificado como sender en tu cuenta de Brevo (solo confirmar el correo por un enlace, no un dominio DNS). A diferencia de Resend, Brevo entrega a cualquier destinatario real sin verificar un dominio propio. |
-| `BREVO_FROM_NAME` | Nombre del remitente que verá el usuario (opcional, por defecto `FilaCero`). |
+| `GMAIL_USER` | Cuenta de Gmail dedicada al proyecto que envía las notificaciones por correo (RF-05). Sin ella, el correo simplemente no se envía y queda registrado como `FALLIDA`; no tumba el backend. |
+| `GMAIL_APP_PASSWORD` | "Contraseña de aplicación" de esa cuenta (no la contraseña normal) — se genera en `myaccount.google.com/apppasswords` tras activar verificación en dos pasos. |
 
 Ver [.env.example](./.env.example).
 
