@@ -20,6 +20,8 @@
     "test:debug": "node --inspect-brk --experimental-vm-modules -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
     "test:integration": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./jest-integration.config.ts --runInBand",
+    "test:integration:cov": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./jest-integration.config.ts --runInBand --coverage",
+    "test:e2e:cov": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json --coverage",
     "test:postman": "newman run postman/FilaCero-API.postman_collection.json --delay-request 100",
     "test:stress:turnos": "artillery run stress/turnos-concurrencia.yml",
     "test:stress:lista-espera": "artillery run stress/lista-espera-concurrencia.yml",

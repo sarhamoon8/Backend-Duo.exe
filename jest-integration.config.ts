@@ -13,6 +13,8 @@ const config: Config = {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
   testEnvironment: 'node',
+  collectCoverageFrom: ['src/**/*.(t|j)s'],
+  coverageDirectory: './coverage-integration',
 };
 
 export default config;
