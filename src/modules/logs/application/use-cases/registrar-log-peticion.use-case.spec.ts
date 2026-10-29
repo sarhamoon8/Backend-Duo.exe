@@ -42,9 +42,25 @@ describe('RegistrarLogPeticionUseCase', () => {
     });
   });
 
-  it('no lanza si el repositorio falla (nunca debe tumbar la petición que lo originó)', async () => {
+  it('no lanza si el repositorio falla con un Error (nunca debe tumbar la petición que lo originó)', async () => {
     const repo = crearRepoFalso({
       registrar: jest.fn().mockRejectedValue(new Error('base de datos caída')),
+    });
+    const useCase = new RegistrarLogPeticionUseCase(repo);
+
+    await expect(
+      useCase.ejecutar({
+        metodo: 'POST',
+        ruta: '/turnos',
+        codigoEstado: 500,
+        duracionMs: 5,
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('no lanza si el repositorio falla con algo que no es un Error', async () => {
+    const repo = crearRepoFalso({
+      registrar: jest.fn().mockRejectedValue('fallo sin instancia de Error'),
     });
     const useCase = new RegistrarLogPeticionUseCase(repo);
 
