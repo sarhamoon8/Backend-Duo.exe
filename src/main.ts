@@ -38,6 +38,7 @@ async function bootstrap() {
     .addTag('lista-espera', 'Lista de espera y reasignación automática (RF-04)')
     .addTag('medicamentos', 'Catálogo de medicamentos')
     .addTag('inventario', 'Disponibilidad de medicamentos por punto (RF-06)')
+    .addTag('logs', 'Bitácora de peticiones HTTP (solo ADMIN)')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

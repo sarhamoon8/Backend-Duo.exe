@@ -208,3 +208,23 @@ model ListaEspera {
   @@unique([usuarioId, servicioId, puntoId])
   @@index([servicioId, puntoId])
 }
+
+// Bitácora de peticiones HTTP, persistida en base de datos (no solo en la
+// consola del contenedor) para que sobreviva a un reinicio/redeploy y se
+// pueda auditar/consultar después. usuarioId es intencionalmente un String
+// suelto, sin relación: un log debe sobrevivir aunque el usuario que lo
+// generó se borre más adelante.
+model LogPeticion {
+  id           String   @id @default(uuid())
+  metodo       String
+  ruta         String
+  codigoEstado Int
+  duracionMs   Int
+  usuarioId    String?
+  ip           String?
+  mensaje      String?
+  creadoEn     DateTime @default(now())
+
+  @@index([creadoEn])
+  @@index([codigoEstado])
+}

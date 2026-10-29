@@ -6,8 +6,9 @@
 # TypeScript build cache
 *.tsbuildinfo
 
-# Logs
-logs
+# Logs (directorio de logs en runtime en la raíz del proyecto; no afecta
+# a src/modules/logs/, que es código fuente, no un directorio de logs)
+/logs
 *.log
 npm-debug.log*
 pnpm-debug.log*
