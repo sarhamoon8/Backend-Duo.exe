@@ -21,6 +21,9 @@
     "test:e2e": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
     "test:integration": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./jest-integration.config.ts --runInBand",
     "test:postman": "newman run postman/FilaCero-API.postman_collection.json --delay-request 100",
+    "test:stress:turnos": "artillery run stress/turnos-concurrencia.yml",
+    "test:stress:lista-espera": "artillery run stress/lista-espera-concurrencia.yml",
+    "stress:limpiar": "ts-node --transpile-only stress/limpiar.ts",
     "db:seed": "prisma db seed"
   },
   "dependencies": {
@@ -50,6 +53,7 @@
     "@types/node": "^24.0.0",
     "@types/nodemailer": "^8.0.2",
     "@types/supertest": "^7.0.0",
+    "artillery": "^2.0.34",
     "jest": "^30.0.0",
     "newman": "^6.2.2",
     "oxlint": "^1.58.0",

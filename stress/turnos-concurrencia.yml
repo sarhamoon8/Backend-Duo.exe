@@ -1,0 +1,57 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 10
+      arrivalRate: 2
+      rampTo: 20
+      name: "Rampa: de carga baja a alta"
+    - duration: 30
+      arrivalRate: 20
+      name: "Carga sostenida"
+  ensure:
+    # Umbral de aceptación: si más del 1% de las solicitudes falla, o el
+    # p95 supera 1.5s, Artillery termina con código de salida distinto de 0
+    # (útil para engancharlo a CI más adelante).
+    maxErrorRate: 1
+    p95: 1500
+
+# RF-02/RF-03: cada "virtual user" se registra con datos únicos, busca el
+# servicio y punto de dispensación de demo (requiere haber corrido antes
+# `npm run db:seed`) y solicita un turno. El objetivo es observar latencia
+# y tasa de error de POST /turnos bajo creación concurrente, que es el
+# endpoint más sensible a concurrencia de todo el backend (calcula la
+# posición en fila a partir de un COUNT sobre la tabla turno).
+scenarios:
+  - name: "Registrar paciente y solicitar un turno"
+    flow:
+      - get:
+          url: "/servicios"
+          capture:
+            - json: "$[0].id"
+              as: "servicioId"
+            - json: "$[0].entidadId"
+              as: "entidadId"
+      - get:
+          url: "/puntos-dispensacion?entidadId={{ entidadId }}"
+          capture:
+            - json: "$[0].id"
+              as: "puntoId"
+      - post:
+          url: "/auth/register"
+          json:
+            numeroDocumento: "STRESS-{{ $uuid }}"
+            tipoDocumento: "CC"
+            nombres: "Carga"
+            apellidos: "Prueba"
+            email: "stress.{{ $uuid }}@example.com"
+            password: "clave123456"
+          capture:
+            - json: "$.accessToken"
+              as: "token"
+      - post:
+          url: "/turnos"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            servicioId: "{{ servicioId }}"
+            puntoId: "{{ puntoId }}"

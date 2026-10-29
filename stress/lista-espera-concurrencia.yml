@@ -1,0 +1,53 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 10
+      arrivalRate: 2
+      rampTo: 20
+      name: "Rampa: de carga baja a alta"
+    - duration: 30
+      arrivalRate: 20
+      name: "Carga sostenida"
+  ensure:
+    maxErrorRate: 1
+    p95: 1500
+
+# RF-04: igual que turnos-concurrencia.yml, pero contra POST /lista-espera.
+# Cada inscripción dispara un INSERT con el constraint único
+# [usuarioId, servicioId, puntoId] y luego, al consultar, un COUNT
+# (contarAntes) para la posición — el mismo patrón de lectura/escritura
+# bajo concurrencia que turnos, pero en la tabla lista_espera.
+scenarios:
+  - name: "Registrar paciente y unirse a la lista de espera"
+    flow:
+      - get:
+          url: "/servicios"
+          capture:
+            - json: "$[0].id"
+              as: "servicioId"
+            - json: "$[0].entidadId"
+              as: "entidadId"
+      - get:
+          url: "/puntos-dispensacion?entidadId={{ entidadId }}"
+          capture:
+            - json: "$[0].id"
+              as: "puntoId"
+      - post:
+          url: "/auth/register"
+          json:
+            numeroDocumento: "STRESS-LE-{{ $uuid }}"
+            tipoDocumento: "CC"
+            nombres: "Carga"
+            apellidos: "Espera"
+            email: "stress.le.{{ $uuid }}@example.com"
+            password: "clave123456"
+          capture:
+            - json: "$.accessToken"
+              as: "token"
+      - post:
+          url: "/lista-espera"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            servicioId: "{{ servicioId }}"
+            puntoId: "{{ puntoId }}"
