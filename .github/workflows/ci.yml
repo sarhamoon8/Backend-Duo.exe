@@ -1,0 +1,65 @@
+name: CI
+
+# Corre en cada push y cada PR hacia las tres ramas del flujo del proyecto
+# (desarrollo -> pre-produccion -> main), para que un cambio que rompe algo
+# quede marcado antes de llegar a la rama que se demuestra/califica.
+on:
+  push:
+    branches: [desarrollo, pre-produccion, main]
+  pull_request:
+    branches: [desarrollo, pre-produccion, main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Misma base de datos que docker-compose.yml (Postgres 16, mismas
+    # credenciales), para que las pruebas de integración y e2e corran
+    # contra algo real y no contra mocks.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: filacero
+          POSTGRES_PASSWORD: filacero
+          POSTGRES_DB: filacero_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U filacero -d filacero_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://filacero:filacero@localhost:5432/filacero_db?schema=public
+      # Secreto de un solo uso para este workflow, no es el de producción.
+      JWT_SECRET: ci-secret-no-es-produccion
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Aplicar migraciones de Prisma
+        run: npx prisma migrate deploy
+
+      - name: Pruebas unitarias (con cobertura)
+        run: npm run test:cov
+
+      - name: Pruebas de integración (repositorios Prisma)
+        run: npm run test:integration
+
+      - name: Pruebas end-to-end
+        run: npm run test:e2e
