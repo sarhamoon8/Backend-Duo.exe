@@ -25,6 +25,18 @@ const config: Config = {
   ],
   coverageDirectory: './coverage',
   testEnvironment: 'node',
+  // Umbral acotado a la capa de casos de uso (donde vive la lógica de
+  // negocio y donde las unitarias sí pueden cubrir todo). Controladores,
+  // mappers, repositorios Prisma y guards se cubren con las pruebas de
+  // integración/e2e, no con unitarias, así que no entran aquí.
+  coverageThreshold: {
+    './src/**/application/use-cases/*.ts': {
+      statements: 90,
+      branches: 75,
+      functions: 90,
+      lines: 90,
+    },
+  },
 };
 
 export default config;
