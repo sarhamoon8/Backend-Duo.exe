@@ -19,6 +19,7 @@
     "test:cov": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --coverage",
     "test:debug": "node --inspect-brk --experimental-vm-modules -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
+    "test:integration": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./jest-integration.config.ts --runInBand",
     "test:postman": "newman run postman/FilaCero-API.postman_collection.json --delay-request 100",
     "db:seed": "prisma db seed"
   },
