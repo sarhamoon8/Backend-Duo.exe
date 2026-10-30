@@ -105,6 +105,22 @@ model PuntoDispensacion {
   turnos            Turno[]
   inventario        Inventario[]
   listasEspera      ListaEspera[]
+  profesionales     Profesional[]
+}
+
+// Profesional de salud (doctor) que atiende en una sede. Por ahora se carga
+// con datos simulados mientras no exista la integración con el registro de
+// profesionales de la EPS.
+model Profesional {
+  id                String            @id @default(uuid())
+  registroMedico    String            @unique
+  nombres           String
+  apellidos         String
+  especialidad      String
+  activo            Boolean           @default(true)
+  puntoDispensacion PuntoDispensacion @relation(fields: [puntoId], references: [id])
+  puntoId           String
+  creadoEn          DateTime          @default(now())
 }
 
 enum EstadoOperativoVentanilla {
