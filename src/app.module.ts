@@ -12,6 +12,9 @@ import { PuntosDispensacionModule } from './modules/puntos-dispensacion/puntos-d
 import { VentanillasModule } from './modules/ventanillas/ventanillas.module';
 import { MedicamentosModule } from './modules/medicamentos/medicamentos.module';
 import { InventarioModule } from './modules/inventario/inventario.module';
+import { ReservasModule } from './modules/reservas/reservas.module';
+import { RecordatoriosModule } from './modules/recordatorios/recordatorios.module';
+import { PerfilSaludModule } from './modules/perfil-salud/perfil-salud.module';
 import { ListaEsperaModule } from './modules/lista-espera/lista-espera.module';
 import { NotificacionesModule } from './modules/notificaciones/notificaciones.module';
 import { LogsModule } from './modules/logs/logs.module';
@@ -31,6 +34,9 @@ import { LogsModule } from './modules/logs/logs.module';
     TurnosModule,
     MedicamentosModule,
     InventarioModule,
+    ReservasModule,
+    RecordatoriosModule,
+    PerfilSaludModule,
     LogsModule,
   ],
   controllers: [AppController],
