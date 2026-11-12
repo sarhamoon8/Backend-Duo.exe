@@ -7,6 +7,12 @@
  */
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import {
+  MEDICAMENTOS_SIMULADOS,
+  PROFESIONALES_SIMULADOS,
+  SEDES_SIMULADAS,
+  STOCK_SIMULADO,
+} from './datos-simulados';
 
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
@@ -111,6 +117,97 @@ async function main() {
     data: { puntoId: punto.id, numeroModulo: 'M1' },
   });
 
+  // ── Datos simulados: sedes, servicios, medicamentos, inventario y doctores ──
+  const SERVICIOS_EXTRA = [
+    { codigoServicio: 'CITA-01', nombre: 'Asignación de citas', tiempoPromedioMin: 8 },
+    { codigoServicio: 'AUT-01', nombre: 'Autorizaciones', tiempoPromedioMin: 10 },
+    { codigoServicio: 'INFO-01', nombre: 'Información y orientación', tiempoPromedioMin: 5 },
+  ];
+  for (const servicio of SERVICIOS_EXTRA) {
+    await prisma.servicio.upsert({
+      where: { codigoServicio: servicio.codigoServicio },
+      update: {},
+      create: { ...servicio, entidadId: entidad.id },
+    });
+  }
+
+  const puntosPorNombre = new Map<string, string>();
+  for (const sede of SEDES_SIMULADAS) {
+    let sedeDb = await prisma.puntoDispensacion.findFirst({
+      where: { entidadId: entidad.id, nombreSede: sede.nombreSede },
+    });
+    sedeDb ??= await prisma.puntoDispensacion.create({
+      data: {
+        entidadId: entidad.id,
+        nombreSede: sede.nombreSede,
+        direccion: sede.direccion,
+        ciudad: sede.ciudad,
+        telefonoContacto: sede.telefonoContacto,
+        capacidadAtencion: sede.capacidadAtencion,
+      },
+    });
+    puntosPorNombre.set(sede.nombreSede, sedeDb.id);
+    for (const modulo of sede.ventanillas) {
+      const existente = await prisma.ventanilla.findFirst({
+        where: { puntoId: sedeDb.id, numeroModulo: modulo },
+      });
+      if (!existente) {
+        await prisma.ventanilla.create({
+          data: { puntoId: sedeDb.id, numeroModulo: modulo },
+        });
+      }
+    }
+  }
+
+  const medicamentosPorCodigo = new Map<string, string>();
+  for (const medicamento of MEDICAMENTOS_SIMULADOS) {
+    const medicamentoDb = await prisma.medicamento.upsert({
+      where: { codigoNacional: medicamento.codigoNacional },
+      update: {},
+      create: medicamento,
+    });
+    medicamentosPorCodigo.set(medicamento.codigoNacional, medicamentoDb.id);
+  }
+
+  const vencimiento = new Date();
+  vencimiento.setFullYear(vencimiento.getFullYear() + 1);
+  for (const [codigo, porSede] of Object.entries(STOCK_SIMULADO)) {
+    const medicamentoId = medicamentosPorCodigo.get(codigo);
+    if (!medicamentoId) continue;
+    for (const [nombreSede, unidades] of Object.entries(porSede)) {
+      const puntoId = puntosPorNombre.get(nombreSede);
+      if (!puntoId) continue;
+      const lote = `L-${codigo.replace('CUM-', '')}-2026`;
+      await prisma.inventario.upsert({
+        where: { puntoId_medicamentoId_lote: { puntoId, medicamentoId, lote } },
+        update: { stockActual: unidades },
+        create: {
+          puntoId,
+          medicamentoId,
+          lote,
+          stockActual: unidades,
+          fechaVencimiento: vencimiento,
+        },
+      });
+    }
+  }
+
+  for (const profesional of PROFESIONALES_SIMULADOS) {
+    const puntoId = puntosPorNombre.get(profesional.sede);
+    if (!puntoId) continue;
+    await prisma.profesional.upsert({
+      where: { registroMedico: profesional.registroMedico },
+      update: {},
+      create: {
+        registroMedico: profesional.registroMedico,
+        nombres: profesional.nombres,
+        apellidos: profesional.apellidos,
+        especialidad: profesional.especialidad,
+        puntoId,
+      },
+    });
+  }
+
   console.log('Datos de demo listos:');
   console.log(`  ADMIN        -> ${admin.email} / ${PASSWORD_DEMO}`);
   console.log(`  FUNCIONARIO  -> ${funcionario.email} / ${PASSWORD_DEMO}`);
@@ -119,6 +216,9 @@ async function main() {
   console.log(`  puntoId      -> ${punto.id}`);
   console.log(`  servicioId   -> ${servicioDispensacion.id}`);
   console.log(`  ventanillaId -> ${ventanilla.id}`);
+  console.log(
+    `  simulados    -> ${SEDES_SIMULADAS.length} sedes, ${MEDICAMENTOS_SIMULADOS.length} medicamentos, ${PROFESIONALES_SIMULADOS.length} doctores`,
+  );
 }
 
 main()
