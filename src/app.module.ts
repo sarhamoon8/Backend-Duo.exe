@@ -15,6 +15,7 @@ import { InventarioModule } from './modules/inventario/inventario.module';
 import { ListaEsperaModule } from './modules/lista-espera/lista-espera.module';
 import { NotificacionesModule } from './modules/notificaciones/notificaciones.module';
 import { LogsModule } from './modules/logs/logs.module';
+import { ProfesionalesModule } from './modules/profesionales/profesionales.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { LogsModule } from './modules/logs/logs.module';
     TurnosModule,
     MedicamentosModule,
     InventarioModule,
+    ProfesionalesModule,
     LogsModule,
   ],
   controllers: [AppController],
