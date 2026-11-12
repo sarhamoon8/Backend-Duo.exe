@@ -15,7 +15,10 @@
     { "key": "servicioId", "value": "", "type": "string" },
     { "key": "ventanillaId", "value": "", "type": "string" },
     { "key": "usuarioId", "value": "", "type": "string" },
-    { "key": "turnoId", "value": "", "type": "string" }
+    { "key": "turnoId", "value": "", "type": "string" },
+    { "key": "medicamentoId", "value": "", "type": "string" },
+    { "key": "reservaId", "value": "", "type": "string" },
+    { "key": "recordatorioId", "value": "", "type": "string" }
   ],
   "item": [
     {
@@ -548,6 +551,328 @@
               "host": ["{{baseUrl}}"],
               "path": ["turnos"],
               "query": [{ "key": "puntoId", "value": "{{puntoId}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Medicamentos, reservas, recordatorios y perfil de salud (RF-06/07/08/10)",
+      "description": "Flujo completo de la mitad 'dispensación de medicamentos' del proyecto: catálogo público → disponibilidad → reservar → entregar (FUNCIONARIO) → historial/recordatorios + alertas de vencimiento → perfil de salud del paciente.",
+      "item": [
+        {
+          "name": "Crear medicamento (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('medicamentoId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigoNacional\": \"CUM-{{$timestamp}}\",\n  \"nombreGenerico\": \"Acetaminofén\",\n  \"concentracion\": \"500mg\",\n  \"presentacion\": \"Tableta\",\n  \"laboratorioFabricante\": \"Lab Demo\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/medicamentos", "host": ["{{baseUrl}}"], "path": ["medicamentos"] },
+            "description": "codigoNacional usa {{$timestamp}} para poder correr la colección varias veces sin chocar con el 409 de duplicado."
+          }
+        },
+        {
+          "name": "Listar catálogo de medicamentos (público)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/medicamentos", "host": ["{{baseUrl}}"], "path": ["medicamentos"] }
+          }
+        },
+        {
+          "name": "Registrar lote en inventario (FUNCIONARIO)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('stockReservado inicia en 0', () => pm.expect(json.stockReservado).to.eql(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_funcionario}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"puntoId\": \"{{puntoId}}\",\n  \"medicamentoId\": \"{{medicamentoId}}\",\n  \"lote\": \"L-{{$timestamp}}\",\n  \"stockActual\": 20,\n  \"fechaVencimiento\": \"2027-06-01\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/inventario", "host": ["{{baseUrl}}"], "path": ["inventario"] }
+          }
+        },
+        {
+          "name": "Consultar disponibilidad en un punto (público)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/inventario?puntoId={{puntoId}}&medicamentoId={{medicamentoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["inventario"],
+              "query": [
+                { "key": "puntoId", "value": "{{puntoId}}" },
+                { "key": "medicamentoId", "value": "{{medicamentoId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "RF-07: Reservar un medicamento disponible (PACIENTE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('reservaId', json.id);",
+                  "pm.test('estado ACTIVA', () => pm.expect(json.estado).to.eql('ACTIVA'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"puntoId\": \"{{puntoId}}\",\n  \"medicamentoId\": \"{{medicamentoId}}\",\n  \"cantidad\": 2\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/reservas", "host": ["{{baseUrl}}"], "path": ["reservas"] },
+            "description": "La ventana de la reserva es de 48h (dentro del rango 24-48h acordado). Elige automáticamente el lote que vence más pronto (FEFO)."
+          }
+        },
+        {
+          "name": "Mis reservas (PACIENTE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{baseUrl}}/reservas/mis-reservas", "host": ["{{baseUrl}}"], "path": ["reservas", "mis-reservas"] }
+          }
+        },
+        {
+          "name": "Reclamar reserva como PACIENTE → 403 (regla de rol)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('403 Forbidden', () => pm.response.to.have.status(403));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId}}/reclamar",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "{{reservaId}}", "reclamar"]
+            }
+          }
+        },
+        {
+          "name": "Entregar (reclamar) la reserva como FUNCIONARIO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('estado RECLAMADA', () => pm.expect(json.estado).to.eql('RECLAMADA'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_funcionario}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId}}/reclamar",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservas", "{{reservaId}}", "reclamar"]
+            },
+            "description": "Descuenta stockActual y stockReservado del lote; vuelve a consultar 'Consultar disponibilidad' para verlo reflejado."
+          }
+        },
+        {
+          "name": "RF-10: Consultar mi perfil de salud (vacío la primera vez)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{baseUrl}}/perfil-salud/mi-perfil", "host": ["{{baseUrl}}"], "path": ["perfil-salud", "mi-perfil"] }
+          }
+        },
+        {
+          "name": "RF-10: Crear/actualizar mi perfil de salud",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('guardó el grupo sanguíneo', () => pm.expect(json.grupoSanguineo).to.eql('O+'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grupoSanguineo\": \"O+\",\n  \"alergias\": \"Penicilina\",\n  \"contactoEmergenciaNombre\": \"Familiar\",\n  \"contactoEmergenciaTelefono\": \"3000000000\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/perfil-salud/mi-perfil", "host": ["{{baseUrl}}"], "path": ["perfil-salud", "mi-perfil"] },
+            "description": "Upsert: la primera vez crea el perfil, las siguientes solo actualiza los campos enviados."
+          }
+        },
+        {
+          "name": "RF-08: Crear recordatorio de medicamento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('recordatorioId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicamentoId\": \"{{medicamentoId}}\",\n  \"mensaje\": \"Tomar en la mañana\",\n  \"horaRecordatorio\": \"08:00\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/recordatorios", "host": ["{{baseUrl}}"], "path": ["recordatorios"] }
+          }
+        },
+        {
+          "name": "RF-08: Mis recordatorios (historial de medicamentos habituales)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{baseUrl}}/recordatorios/mis-recordatorios", "host": ["{{baseUrl}}"], "path": ["recordatorios", "mis-recordatorios"] }
+          }
+        },
+        {
+          "name": "RF-08: Alertas de fórmulas próximas a vencer",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": { "raw": "{{baseUrl}}/recordatorios/alertas-vencimiento", "host": ["{{baseUrl}}"], "path": ["recordatorios", "alertas-vencimiento"] },
+            "description": "Solo aparece acá si el lote más próximo a vencer de ese medicamento está a 7 días o menos (ver fechaVencimiento usada en 'Registrar lote en inventario')."
+          }
+        },
+        {
+          "name": "RF-08: Desactivar un recordatorio propio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('activo en false', () => pm.expect(json.activo).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"activo\": false\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/recordatorios/{{recordatorioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recordatorios", "{{recordatorioId}}"]
+            }
+          }
+        },
+        {
+          "name": "RF-08: Eliminar un recordatorio propio",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/recordatorios/{{recordatorioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recordatorios", "{{recordatorioId}}"]
             }
           }
         }
