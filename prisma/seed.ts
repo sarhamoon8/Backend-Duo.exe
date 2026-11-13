@@ -8,11 +8,24 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import {
+  FUNCIONARIOS_SIMULADOS,
   MEDICAMENTOS_SIMULADOS,
+  PACIENTES_SIMULADOS,
   PROFESIONALES_SIMULADOS,
   SEDES_SIMULADAS,
   STOCK_SIMULADO,
 } from './datos-simulados';
+import {
+  generarCitas,
+  generarHistorialTurnos,
+  generarListaEspera,
+  generarNotificaciones,
+  generarTurnosDeHoy,
+  horariosDelProfesional,
+  type ProfesionalConId,
+  type PuntoConVentanillas,
+  type ServicioConId,
+} from './generadores-simulados';
 
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
@@ -208,6 +221,99 @@ async function main() {
     });
   }
 
+  // ── Datos simulados de operación: personal, pacientes, horarios, citas, turnos ──
+  const ahora = new Date();
+
+  for (const persona of FUNCIONARIOS_SIMULADOS) {
+    await prisma.usuario.upsert({
+      where: { email: persona.email },
+      update: {},
+      create: { ...persona, tipoDocumento: 'CC', password: passwordHash, rol: 'FUNCIONARIO' },
+    });
+  }
+
+  const pacienteIds: string[] = [paciente.id];
+  for (const persona of PACIENTES_SIMULADOS) {
+    const creado = await prisma.usuario.upsert({
+      where: { email: persona.email },
+      update: {},
+      create: { ...persona, tipoDocumento: 'CC', password: passwordHash, rol: 'PACIENTE' },
+    });
+    pacienteIds.push(creado.id);
+  }
+
+  const profesionales: ProfesionalConId[] = [];
+  for (const [indice, profesional] of PROFESIONALES_SIMULADOS.entries()) {
+    const profesionalDb = await prisma.profesional.findUnique({
+      where: { registroMedico: profesional.registroMedico },
+    });
+    if (!profesionalDb) continue;
+    profesionales.push({
+      id: profesionalDb.id,
+      puntoId: profesionalDb.puntoId,
+      especialidad: profesionalDb.especialidad,
+      indice,
+    });
+    await prisma.horarioProfesional.createMany({
+      data: horariosDelProfesional(indice).map((horario) => ({
+        profesionalId: profesionalDb.id,
+        ...horario,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  // Las citas se generan relativas a hoy; si ya existen, no se duplican.
+  if ((await prisma.cita.count()) === 0) {
+    await prisma.cita.createMany({
+      data: generarCitas(ahora, profesionales, pacienteIds),
+      skipDuplicates: true,
+    });
+  }
+
+  const sedesDb = await prisma.puntoDispensacion.findMany({
+    where: { entidadId: entidad.id },
+    include: { ventanillas: true },
+    orderBy: { nombreSede: 'asc' },
+  });
+  const puntosConVentanillas: PuntoConVentanillas[] = SEDES_SIMULADAS.map((sede) => {
+    const sedeDb = sedesDb.find((s) => s.nombreSede === sede.nombreSede);
+    return { id: sedeDb?.id ?? '', ventanillaIds: (sedeDb?.ventanillas ?? []).map((v) => v.id) };
+  }).filter((p) => p.id && p.ventanillaIds.length > 0);
+  const serviciosDb = await prisma.servicio.findMany({ where: { entidadId: entidad.id } });
+  const servicios: ServicioConId[] = serviciosDb.map((s) => ({ id: s.id, tiempoPromedioMin: s.tiempoPromedioMin }));
+
+  if (puntosConVentanillas.length > 0 && servicios.length > 0) {
+    // Historial para los reportes y fila de hoy; los códigos son únicos, así que
+    // volver a correr el seed no duplica.
+    await prisma.turno.createMany({
+      data: [
+        ...generarHistorialTurnos(ahora, puntosConVentanillas, servicios, pacienteIds),
+        ...generarTurnosDeHoy(ahora, puntosConVentanillas, servicios, pacienteIds),
+      ],
+      skipDuplicates: true,
+    });
+
+    const servicioCitas = serviciosDb.find((s) => s.codigoServicio === 'CITA-01');
+    const servicioAutorizaciones = serviciosDb.find((s) => s.codigoServicio === 'AUT-01');
+    if (servicioCitas && servicioAutorizaciones) {
+      await prisma.listaEspera.createMany({
+        data: generarListaEspera(
+          ahora,
+          puntosConVentanillas[0]!.id,
+          servicioCitas.id,
+          servicioAutorizaciones.id,
+          pacienteIds,
+        ),
+        skipDuplicates: true,
+      });
+    }
+  }
+
+  if ((await prisma.notificacion.count()) === 0) {
+    await prisma.notificacion.createMany({ data: generarNotificaciones(ahora, pacienteIds) });
+  }
+
   console.log('Datos de demo listos:');
   console.log(`  ADMIN        -> ${admin.email} / ${PASSWORD_DEMO}`);
   console.log(`  FUNCIONARIO  -> ${funcionario.email} / ${PASSWORD_DEMO}`);
@@ -217,7 +323,7 @@ async function main() {
   console.log(`  servicioId   -> ${servicioDispensacion.id}`);
   console.log(`  ventanillaId -> ${ventanilla.id}`);
   console.log(
-    `  simulados    -> ${SEDES_SIMULADAS.length} sedes, ${MEDICAMENTOS_SIMULADOS.length} medicamentos, ${PROFESIONALES_SIMULADOS.length} doctores`,
+    `  simulados    -> ${SEDES_SIMULADAS.length} sedes, ${MEDICAMENTOS_SIMULADOS.length} medicamentos, ${PROFESIONALES_SIMULADOS.length} doctores, ${PACIENTES_SIMULADOS.length} pacientes, ${FUNCIONARIOS_SIMULADOS.length} funcionarios`,
   );
 }
 
