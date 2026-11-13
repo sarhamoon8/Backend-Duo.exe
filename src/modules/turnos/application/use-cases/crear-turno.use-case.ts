@@ -16,6 +16,7 @@ import type { PuntoDispensacionRepository } from '../../../puntos-dispensacion/d
 import { CrearTurnoDto } from '../dto/crear-turno.dto';
 import { generarCodigoTurno } from '../../domain/generar-codigo-turno';
 import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
+import { MINUTOS_MINIMOS_ANTES_DE_LLAMADO } from '../../domain/tiempo-espera';
 import { TipoNotificacion } from '../../../notificaciones/domain/tipo-notificacion.enum';
 
 @Injectable()
@@ -78,7 +79,7 @@ export class CrearTurnoUseCase {
       usuarioId,
       TipoNotificacion.TURNO_CREADO,
       'Turno creado',
-      `Se creó tu turno ${turno.codigoAlfanumerico} para el servicio "${servicio.nombre}" en ${punto.nombreSede}.`,
+      `Se creó tu turno ${turno.codigoAlfanumerico} para el servicio "${servicio.nombre}" en ${punto.nombreSede}. Te damos al menos ${MINUTOS_MINIMOS_ANTES_DE_LLAMADO} minutos para llegar a la sede: no te llamaremos antes. Consulta en la app cuánto falta.`,
     );
 
     return turno;
