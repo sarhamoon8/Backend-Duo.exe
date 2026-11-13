@@ -3,6 +3,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AgendarCitaUseCase } from '../../application/use-cases/agendar-cita.use-case';
 import { CancelarCitaUseCase } from '../../application/use-cases/cancelar-cita.use-case';
 import { ConsultarDisponibilidadUseCase } from '../../application/use-cases/consultar-disponibilidad.use-case';
+import { ReprogramarCitaUseCase } from '../../application/use-cases/reprogramar-cita.use-case';
+import { ReprogramarCitaDto } from '../../application/dto/reprogramar-cita.dto';
 import { ListarMisCitasUseCase } from '../../application/use-cases/listar-mis-citas.use-case';
 import { AgendarCitaDto } from '../../application/dto/agendar-cita.dto';
 import { ConsultarDisponibilidadDto } from '../../application/dto/consultar-disponibilidad.dto';
@@ -21,6 +23,7 @@ export class CitaController {
     private readonly agendarCitaUseCase: AgendarCitaUseCase,
     private readonly listarMisCitasUseCase: ListarMisCitasUseCase,
     private readonly cancelarCitaUseCase: CancelarCitaUseCase,
+    private readonly reprogramarCitaUseCase: ReprogramarCitaUseCase,
   ) {}
 
   @ApiOperation({
@@ -60,6 +63,24 @@ export class CitaController {
     return citas.map(({ cita, profesional }) =>
       CitaResponseDto.fromEntity(cita, profesional),
     );
+  }
+
+  @ApiOperation({
+    summary:
+      'Reprogramar una cita a otra hora (mismo doctor si está libre, si no otro disponible)',
+  })
+  @Patch(':id/reprogramar')
+  async reprogramar(
+    @Param('id') id: string,
+    @Body() dto: ReprogramarCitaDto,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<CitaResponseDto> {
+    const { cita, profesional } = await this.reprogramarCitaUseCase.ejecutar(
+      id,
+      dto,
+      { id: request.usuario!.sub, rol: request.usuario!.rol },
+    );
+    return CitaResponseDto.fromEntity(cita, profesional);
   }
 
   @ApiOperation({ summary: 'Cancelar una cita (propia, o cualquiera si eres personal/ADMIN)' })
