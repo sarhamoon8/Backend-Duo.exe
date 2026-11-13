@@ -27,6 +27,7 @@ model Usuario {
   turnos          Turno[]
   listasEspera    ListaEspera[]
   notificaciones  Notificacion[]
+  citas           Cita[]
 }
 
 enum Rol {
@@ -106,6 +107,7 @@ model PuntoDispensacion {
   inventario        Inventario[]
   listasEspera      ListaEspera[]
   profesionales     Profesional[]
+  citas             Cita[]
 }
 
 // Profesional de salud (doctor) que atiende en una sede. Por ahora se carga
@@ -121,6 +123,49 @@ model Profesional {
   puntoDispensacion PuntoDispensacion @relation(fields: [puntoId], references: [id])
   puntoId           String
   creadoEn          DateTime          @default(now())
+  horarios          HorarioProfesional[]
+  citas             Cita[]
+}
+
+// Franja de atención semanal de un profesional. diaSemana: 1 = lunes ... 7 = domingo.
+// horaInicio/horaFin en formato HH:mm (hora local de Colombia); duracionMin es el
+// tamaño de cada cita dentro de la franja.
+model HorarioProfesional {
+  id            String      @id @default(uuid())
+  profesional   Profesional @relation(fields: [profesionalId], references: [id])
+  profesionalId String
+  diaSemana     Int
+  horaInicio    String
+  horaFin       String
+  duracionMin   Int         @default(30)
+
+  @@unique([profesionalId, diaSemana, horaInicio])
+}
+
+enum EstadoCita {
+  PROGRAMADA
+  COMPLETADA
+  CANCELADA
+}
+
+// Cita con un profesional. La restricción única [profesionalId, fechaHora] impide
+// que dos pacientes tomen la misma hora con el mismo doctor.
+model Cita {
+  id            String            @id @default(uuid())
+  paciente      Usuario           @relation(fields: [pacienteId], references: [id])
+  pacienteId    String
+  profesional   Profesional       @relation(fields: [profesionalId], references: [id])
+  profesionalId String
+  puntoDispensacion PuntoDispensacion @relation(fields: [puntoId], references: [id])
+  puntoId       String
+  especialidad  String
+  fechaHora     DateTime
+  estado        EstadoCita        @default(PROGRAMADA)
+  creadoEn      DateTime          @default(now())
+
+  @@unique([profesionalId, fechaHora])
+  @@index([pacienteId])
+  @@index([puntoId, especialidad, fechaHora])
 }
 
 enum EstadoOperativoVentanilla {
