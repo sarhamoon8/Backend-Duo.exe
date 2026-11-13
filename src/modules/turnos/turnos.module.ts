@@ -14,6 +14,7 @@ import { CancelarTurnoUseCase } from './application/use-cases/cancelar-turno.use
 import { ListarTurnosPorPuntoUseCase } from './application/use-cases/listar-turnos-por-punto.use-case';
 import { ListarMisTurnosUseCase } from './application/use-cases/listar-mis-turnos.use-case';
 import { ObtenerTurnoUseCase } from './application/use-cases/obtener-turno.use-case';
+import { EstimarLlamadoTurnoUseCase } from './application/use-cases/estimar-llamado-turno.use-case';
 import { ObtenerPosicionTurnoUseCase } from './application/use-cases/obtener-posicion-turno.use-case';
 import { ReasignarDesdeListaEsperaUseCase } from './application/use-cases/reasignar-desde-lista-espera.use-case';
 
@@ -35,6 +36,7 @@ import { ReasignarDesdeListaEsperaUseCase } from './application/use-cases/reasig
     ListarMisTurnosUseCase,
     ObtenerTurnoUseCase,
     ObtenerPosicionTurnoUseCase,
+    EstimarLlamadoTurnoUseCase,
     ReasignarDesdeListaEsperaUseCase,
     { provide: TURNO_REPOSITORY, useClass: PrismaTurnoRepository },
   ],
