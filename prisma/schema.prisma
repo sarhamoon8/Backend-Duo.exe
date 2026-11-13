@@ -61,6 +61,9 @@ enum TipoNotificacion {
   TURNO_CANCELADO
   TURNO_EN_CURSO
   TURNO_REASIGNADO
+  CITA_AGENDADA
+  CITA_CANCELADA
+  CITA_REPROGRAMADA
 }
 
 enum EstadoEnvioNotificacion {
