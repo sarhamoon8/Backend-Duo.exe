@@ -1,0 +1,5 @@
+export enum EstadoCita {
+  PROGRAMADA = 'PROGRAMADA',
+  COMPLETADA = 'COMPLETADA',
+  CANCELADA = 'CANCELADA',
+}

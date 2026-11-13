@@ -18,6 +18,8 @@ import { PerfilSaludModule } from './modules/perfil-salud/perfil-salud.module';
 import { ListaEsperaModule } from './modules/lista-espera/lista-espera.module';
 import { NotificacionesModule } from './modules/notificaciones/notificaciones.module';
 import { LogsModule } from './modules/logs/logs.module';
+import { ProfesionalesModule } from './modules/profesionales/profesionales.module';
+import { CitasModule } from './modules/citas/citas.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { LogsModule } from './modules/logs/logs.module';
     ReservasModule,
     RecordatoriosModule,
     PerfilSaludModule,
+    ProfesionalesModule,
+    CitasModule,
     LogsModule,
   ],
   controllers: [AppController],

@@ -102,4 +102,41 @@ export const PROFESIONALES_SIMULADOS: ProfesionalSimulado[] = [
   { registroMedico: 'RM-20008', nombres: 'Santiago', apellidos: 'Arias Beltrán', especialidad: 'Endocrinología', sede: 'Sede Galerías' },
   { registroMedico: 'RM-20009', nombres: 'Laura', apellidos: 'Cárdenas Silva', especialidad: 'Medicina general', sede: 'Sede Galerías' },
   { registroMedico: 'RM-20010', nombres: 'Felipe', apellidos: 'Mora Quintero', especialidad: 'Psiquiatría', sede: 'Sede Fusagasugá' },
+  { registroMedico: 'RM-20011', nombres: 'Natalia', apellidos: 'Vargas Ospina', especialidad: 'Odontología', sede: 'Sede Fusagasugá' },
+  { registroMedico: 'RM-20012', nombres: 'Esteban', apellidos: 'Ruiz Cañón', especialidad: 'Dermatología', sede: 'Sede Galerías' },
+  { registroMedico: 'RM-20013', nombres: 'Paula', apellidos: 'Mendoza Triana', especialidad: 'Pediatría', sede: 'Sede Chapinero' },
+  { registroMedico: 'RM-20014', nombres: 'Ricardo', apellidos: 'Lozano Prieto', especialidad: 'Cardiología', sede: 'Sede Galerías' },
+
+];
+
+export interface PersonaSimulada {
+  numeroDocumento: string;
+  nombres: string;
+  apellidos: string;
+  email: string;
+  telefono: string;
+}
+
+/** Pacientes ficticios para llenar la fila, las citas y los reportes. */
+export const PACIENTES_SIMULADOS: PersonaSimulada[] = [
+  { numeroDocumento: '1000000101', nombres: 'María Fernanda', apellidos: 'López Rincón', email: 'maria.lopez@filacero.demo', telefono: '3101110101' },
+  { numeroDocumento: '1000000102', nombres: 'Juan David', apellidos: 'Martínez Soto', email: 'juan.martinez@filacero.demo', telefono: '3101110102' },
+  { numeroDocumento: '1000000103', nombres: 'Luisa', apellidos: 'Ramírez Cruz', email: 'luisa.ramirez@filacero.demo', telefono: '3101110103' },
+  { numeroDocumento: '1000000104', nombres: 'Pedro', apellidos: 'Sánchez Duarte', email: 'pedro.sanchez@filacero.demo', telefono: '3101110104' },
+  { numeroDocumento: '1000000105', nombres: 'Ana Sofía', apellidos: 'Torres Bernal', email: 'ana.torres@filacero.demo', telefono: '3101110105' },
+  { numeroDocumento: '1000000106', nombres: 'Camilo', apellidos: 'Gutiérrez Pinto', email: 'camilo.gutierrez@filacero.demo', telefono: '3101110106' },
+  { numeroDocumento: '1000000107', nombres: 'Diana Carolina', apellidos: 'Moreno Acosta', email: 'diana.moreno@filacero.demo', telefono: '3101110107' },
+  { numeroDocumento: '1000000108', nombres: 'Sebastián', apellidos: 'Vega Londoño', email: 'sebastian.vega@filacero.demo', telefono: '3101110108' },
+  { numeroDocumento: '1000000109', nombres: 'Valeria', apellidos: 'Cortés Navarro', email: 'valeria.cortes@filacero.demo', telefono: '3101110109' },
+  { numeroDocumento: '1000000110', nombres: 'Hugo', apellidos: 'Patiño Ibarra', email: 'hugo.patino@filacero.demo', telefono: '3101110110' },
+  { numeroDocumento: '1000000111', nombres: 'Isabela', apellidos: 'Cruz Montoya', email: 'isabela.cruz@filacero.demo', telefono: '3101110111' },
+  { numeroDocumento: '1000000112', nombres: 'Tomás', apellidos: 'Rey Ballesteros', email: 'tomas.rey@filacero.demo', telefono: '3101110112' },
+];
+
+/** Personal de atención adicional; cada uno se asocia a una sede en la demo. */
+export const FUNCIONARIOS_SIMULADOS: PersonaSimulada[] = [
+  { numeroDocumento: '1000000201', nombres: 'Marcela', apellidos: 'Quiroga Páez', email: 'marcela.quiroga@filacero.demo', telefono: '3201110201' },
+  { numeroDocumento: '1000000202', nombres: 'Óscar', apellidos: 'Bermúdez Rueda', email: 'oscar.bermudez@filacero.demo', telefono: '3201110202' },
+  { numeroDocumento: '1000000203', nombres: 'Liliana', apellidos: 'Ortiz Camargo', email: 'liliana.ortiz@filacero.demo', telefono: '3201110203' },
+  { numeroDocumento: '1000000204', nombres: 'Fabián', apellidos: 'Posada Lara', email: 'fabian.posada@filacero.demo', telefono: '3201110204' },
 ];
