@@ -148,8 +148,10 @@ enum EstadoCita {
   CANCELADA
 }
 
-// Cita con un profesional. La restricción única [profesionalId, fechaHora] impide
-// que dos pacientes tomen la misma hora con el mismo doctor.
+// Cita con un profesional. Un índice único PARCIAL (ver la migración
+// 20261113100000_unicidad_citas_activas; Prisma no lo expresa en el esquema) impide
+// que dos pacientes tomen la misma hora con el mismo doctor, pero deja libre la
+// hora de una cita cancelada.
 model Cita {
   id            String            @id @default(uuid())
   paciente      Usuario           @relation(fields: [pacienteId], references: [id])
@@ -163,7 +165,7 @@ model Cita {
   estado        EstadoCita        @default(PROGRAMADA)
   creadoEn      DateTime          @default(now())
 
-  @@unique([profesionalId, fechaHora])
+  @@index([profesionalId, fechaHora])
   @@index([pacienteId])
   @@index([puntoId, especialidad, fechaHora])
 }
