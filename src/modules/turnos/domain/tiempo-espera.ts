@@ -49,3 +49,13 @@ export function estimarLlamado(params: {
     llamableDesde: llamableDesde(params.creadoEn),
   };
 }
+
+/** Hora local de Colombia, p. ej. «9:30 a. m.». */
+export function formatearHoraColombia(fecha: Date): string {
+  return new Intl.DateTimeFormat('es-CO', {
+    timeZone: 'America/Bogota',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(fecha);
+}
