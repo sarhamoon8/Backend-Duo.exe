@@ -7,6 +7,8 @@ import { Rol } from '../../../usuarios/domain/rol.enum';
 import { Cita } from '../../domain/cita.entity';
 import { CitaRepository } from '../../domain/cita.repository';
 import { EstadoCita } from '../../domain/estado-cita.enum';
+import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
+import { TipoNotificacion } from '../../../notificaciones/domain/tipo-notificacion.enum';
 import { CancelarCitaUseCase } from './cancelar-cita.use-case';
 
 const AHORA = new Date('2026-11-16T13:00:00.000Z');
@@ -15,6 +17,7 @@ const cita = (estado: EstadoCita, fechaHora: string) =>
 
 describe('CancelarCitaUseCase', () => {
   let citas: jest.Mocked<CitaRepository>;
+  let notificaciones: jest.Mocked<EnviarNotificacionUseCase>;
   let useCase: CancelarCitaUseCase;
 
   beforeEach(() => {
@@ -27,7 +30,8 @@ describe('CancelarCitaUseCase', () => {
       cancelar: jest.fn().mockResolvedValue(cita(EstadoCita.CANCELADA, '2026-11-17T14:00:00.000Z')),
       reprogramar: jest.fn(),
     } as jest.Mocked<CitaRepository>;
-    useCase = new CancelarCitaUseCase(citas);
+    notificaciones = { ejecutar: jest.fn() } as unknown as jest.Mocked<EnviarNotificacionUseCase>;
+    useCase = new CancelarCitaUseCase(citas, notificaciones);
   });
 
   it('el paciente cancela su propia cita', async () => {
@@ -35,6 +39,17 @@ describe('CancelarCitaUseCase', () => {
 
     expect(citas.cancelar).toHaveBeenCalledWith('c1');
     expect(resultado.estado).toBe(EstadoCita.CANCELADA);
+  });
+
+  it('avisa al dueño de la cita, aunque la cancele el personal', async () => {
+    await useCase.ejecutar('c1', { id: 'otro', rol: Rol.FUNCIONARIO }, AHORA);
+
+    expect(notificaciones.ejecutar).toHaveBeenCalledWith(
+      'u1',
+      TipoNotificacion.CITA_CANCELADA,
+      'Cita cancelada',
+      expect.stringContaining('cancelada'),
+    );
   });
 
   it('el personal puede cancelar la cita de cualquier paciente', async () => {
@@ -48,6 +63,7 @@ describe('CancelarCitaUseCase', () => {
       useCase.ejecutar('c1', { id: 'otro', rol: Rol.PACIENTE }, AHORA),
     ).rejects.toThrow(ForbiddenException);
     expect(citas.cancelar).not.toHaveBeenCalled();
+    expect(notificaciones.ejecutar).not.toHaveBeenCalled();
   });
 
   it('responde 404 si la cita no existe', async () => {
