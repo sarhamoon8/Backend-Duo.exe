@@ -25,6 +25,7 @@ describe('CancelarCitaUseCase', () => {
       ocupadasEntre: jest.fn(),
       pacienteTieneCitaEn: jest.fn(),
       cancelar: jest.fn().mockResolvedValue(cita(EstadoCita.CANCELADA, '2026-11-17T14:00:00.000Z')),
+      reprogramar: jest.fn(),
     } as jest.Mocked<CitaRepository>;
     useCase = new CancelarCitaUseCase(citas);
   });

@@ -50,6 +50,7 @@ describe('AgendarCitaUseCase', () => {
       ocupadasEntre: jest.fn().mockResolvedValue([]),
       pacienteTieneCitaEn: jest.fn().mockResolvedValue(false),
       cancelar: jest.fn(),
+      reprogramar: jest.fn(),
     } as jest.Mocked<CitaRepository>;
     useCase = new AgendarCitaUseCase(profesionales, horarios, citas);
   });
