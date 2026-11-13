@@ -10,6 +10,9 @@ import { CitaRepository } from '../../domain/cita.repository';
 import { EstadoCita } from '../../domain/estado-cita.enum';
 import { HorarioProfesional } from '../../domain/horario-profesional.entity';
 import { HorarioRepository } from '../../domain/horario.repository';
+import { AsignadorDeDoctorService } from '../services/asignador-de-doctor.service';
+import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
+import { TipoNotificacion } from '../../../notificaciones/domain/tipo-notificacion.enum';
 import { AgendarCitaUseCase } from './agendar-cita.use-case';
 
 // Hoy (para las pruebas) es lunes 16/11/2026 08:00 en Colombia.
@@ -24,6 +27,7 @@ describe('AgendarCitaUseCase', () => {
   let profesionales: jest.Mocked<ProfesionalRepository>;
   let horarios: jest.Mocked<HorarioRepository>;
   let citas: jest.Mocked<CitaRepository>;
+  let notificaciones: jest.Mocked<EnviarNotificacionUseCase>;
   let useCase: AgendarCitaUseCase;
 
   const dto = { puntoId: 'p1', especialidad: 'Cardiología', fechaHora: FECHA_HORA };
@@ -52,7 +56,12 @@ describe('AgendarCitaUseCase', () => {
       cancelar: jest.fn(),
       reprogramar: jest.fn(),
     } as jest.Mocked<CitaRepository>;
-    useCase = new AgendarCitaUseCase(profesionales, horarios, citas);
+    notificaciones = { ejecutar: jest.fn() } as unknown as jest.Mocked<EnviarNotificacionUseCase>;
+    useCase = new AgendarCitaUseCase(
+      citas,
+      new AsignadorDeDoctorService(profesionales, horarios, citas),
+      notificaciones,
+    );
   });
 
   it('asigna automáticamente un doctor disponible de la sede y especialidad', async () => {
@@ -67,6 +76,24 @@ describe('AgendarCitaUseCase', () => {
       especialidad: 'Cardiología',
       fechaHora: new Date(FECHA_HORA),
     });
+  });
+
+  it('avisa al paciente que su cita quedó confirmada', async () => {
+    await useCase.ejecutar(dto, 'u1', AHORA);
+
+    expect(notificaciones.ejecutar).toHaveBeenCalledWith(
+      'u1',
+      TipoNotificacion.CITA_AGENDADA,
+      'Cita confirmada',
+      expect.stringContaining('Cardiología'),
+    );
+  });
+
+  it('no avisa si no se pudo agendar', async () => {
+    citas.pacienteTieneCitaEn.mockResolvedValue(true);
+
+    await expect(useCase.ejecutar(dto, 'u1', AHORA)).rejects.toThrow(ConflictException);
+    expect(notificaciones.ejecutar).not.toHaveBeenCalled();
   });
 
   it('salta al doctor que ya tiene la hora ocupada', async () => {

@@ -13,11 +13,9 @@ import {
   instanteColombia,
   rangoDelDia,
 } from '../../domain/franjas';
+import { MINUTOS_MINIMOS_ANTICIPACION } from '../../domain/reglas-cita';
 import { ConsultarDisponibilidadDto } from '../dto/consultar-disponibilidad.dto';
 import { DisponibilidadResponseDto } from '../dto/cita-response.dto';
-
-// Una cita no se puede pedir con menos de este margen de anticipación.
-export const MINUTOS_MINIMOS_ANTICIPACION = 30;
 
 @Injectable()
 export class ConsultarDisponibilidadUseCase {
