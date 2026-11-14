@@ -40,4 +40,12 @@ describe('EstimarLlamadoTurnoUseCase', () => {
 
     expect(estimacion?.minutosEstimados).toBe(15);
   });
+
+  it('usa 0 minutos por persona si el servicio ya no existe', async () => {
+    servicios.buscarPorId.mockResolvedValueOnce(null);
+
+    const estimacion = await useCase.ejecutar(turno, 8, CREADO);
+
+    expect(estimacion?.minutosEstimados).toBe(15);
+  });
 });
