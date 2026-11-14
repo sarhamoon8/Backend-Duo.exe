@@ -131,7 +131,8 @@ Ver [.env.example](./.env.example).
 | `npm run lint` | Corre oxlint sobre `src/` y `test/` |
 | `npm run format` | Formatea con Prettier |
 | `npm test` | Pruebas unitarias (Jest) |
-| `npm run test:e2e` | Pruebas end-to-end |
+| `npm run test:integration` | Pruebas de integración de los repositorios Prisma (requiere la base de datos) |
+| `npm run test:e2e` | Pruebas end-to-end (requiere la base de datos) |
 | `npm run test:postman` | Corre la colección de Postman por CLI (Newman) contra la API local |
 | `npm run test:cov` | Pruebas con reporte de cobertura |
 | `npx prisma studio` | Explorador visual de la base de datos |
@@ -189,9 +190,13 @@ Además de Swagger, hay una colección de Postman lista para importar en [postma
 ## Pruebas
 
 ```bash
-npm test          # unitarias
-npm run test:e2e  # end-to-end (requiere la base de datos levantada)
+npm test                  # unitarias (src/**/*.spec.ts)
+npm run test:cov          # unitarias con cobertura (umbral en los casos de uso)
+npm run test:integration  # repositorios Prisma reales (requiere la base de datos levantada)
+npm run test:e2e          # end-to-end (requiere la base de datos levantada)
 ```
+
+> Usa siempre los scripts de `npm` y no `npx jest` a secas: `@nestjs/common` 12 es un módulo ESM y Jest solo lo carga con `node --experimental-vm-modules`, que ya traen los scripts. Requiere Node 24.
 
 ## Documentación relacionada
 
