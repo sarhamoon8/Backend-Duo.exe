@@ -254,7 +254,23 @@ describe('Flujo de autenticación y turnos (e2e)', () => {
         .expect(400);
     });
 
+    it('no se puede llamar un turno recién creado: falta el margen de llegada (400)', async () => {
+      const respuesta = await request(app.getHttpServer())
+        .patch(`/turnos/${turnoId}/avanzar`)
+        .set('Authorization', `Bearer ${tokenFuncionario}`)
+        .send({ ventanillaId })
+        .expect(400);
+
+      expect(respuesta.body.message).toContain('aún no se puede llamar');
+    });
+
     it('el funcionario llama el turno (PENDIENTE -> EN_CURSO)', async () => {
+      // Se simula que ya pasó el margen de llegada a la sede.
+      await prisma.turno.update({
+        where: { id: turnoId },
+        data: { creadoEn: new Date(Date.now() - 60 * 60_000) },
+      });
+
       const respuesta = await request(app.getHttpServer())
         .patch(`/turnos/${turnoId}/avanzar`)
         .set('Authorization', `Bearer ${tokenFuncionario}`)
