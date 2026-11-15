@@ -17,7 +17,7 @@ describe('Catálogo de medicamentos e inventario (e2e)', () => {
   const sufijo = Date.now().toString();
   const emailAdmin = `admin.e2e.${sufijo}@example.com`;
   const emailPaciente = `paciente.medic.e2e.${sufijo}@example.com`;
-  const passwordDemo = 'clave123456';
+  const passwordDemo = 'Clave123456!';
 
   let entidadId: string;
   let puntoId: string;
@@ -104,6 +104,7 @@ describe('Catálogo de medicamentos e inventario (e2e)', () => {
         apellidos: 'Medic E2E',
         email: emailPaciente,
         password: passwordDemo,
+        aceptaTerminos: true,
       });
     tokenPaciente = registroPaciente.body.accessToken;
   });

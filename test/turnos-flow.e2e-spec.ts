@@ -23,7 +23,7 @@ describe('Flujo de autenticación y turnos (e2e)', () => {
   const sufijo = Date.now().toString();
   const emailPaciente = `paciente.e2e.${sufijo}@example.com`;
   const emailFuncionario = `funcionario.e2e.${sufijo}@example.com`;
-  const passwordDemo = 'clave123456';
+  const passwordDemo = 'Clave123456!';
 
   let entidadId: string;
   let puntoId: string;
@@ -130,6 +130,7 @@ describe('Flujo de autenticación y turnos (e2e)', () => {
           apellidos: 'E2E',
           email: emailPaciente,
           password: passwordDemo,
+        aceptaTerminos: true,
         })
         .expect(201);
 
@@ -147,6 +148,7 @@ describe('Flujo de autenticación y turnos (e2e)', () => {
           apellidos: 'Duplicado',
           email: emailPaciente,
           password: passwordDemo,
+        aceptaTerminos: true,
         })
         .expect(409);
     });
@@ -161,6 +163,7 @@ describe('Flujo de autenticación y turnos (e2e)', () => {
           apellidos: 'Extra',
           email: `extra.${sufijo}@example.com`,
           password: passwordDemo,
+        aceptaTerminos: true,
           rol: 'ADMIN', // no existe en RegisterDto: forbidNonWhitelisted debe rechazarlo
         })
         .expect(400);
