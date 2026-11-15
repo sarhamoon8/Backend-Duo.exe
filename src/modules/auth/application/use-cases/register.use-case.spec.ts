@@ -23,7 +23,8 @@ const dto: RegisterDto = {
   nombres: 'Ana',
   apellidos: 'Pérez',
   email: 'ana@example.com',
-  password: 'clave123',
+  password: 'Clave123!',
+  aceptaTerminos: true,
 };
 
 const usuarioCreado = new Usuario(

@@ -19,7 +19,7 @@ describe('Lista de espera y reasignación automática (e2e)', () => {
   const emailPaciente2 = `paciente2.espera.e2e.${sufijo}@example.com`;
   const emailPaciente3 = `paciente3.espera.e2e.${sufijo}@example.com`;
   const emailFuncionario = `funcionario.espera.e2e.${sufijo}@example.com`;
-  const passwordDemo = 'clave123456';
+  const passwordDemo = 'Clave123456!';
 
   let entidadId: string;
   let puntoId: string;
@@ -106,6 +106,7 @@ describe('Lista de espera y reasignación automática (e2e)', () => {
           apellidos: 'Espera E2E',
           email,
           password: passwordDemo,
+        aceptaTerminos: true,
         });
       return respuesta.body.accessToken;
     };

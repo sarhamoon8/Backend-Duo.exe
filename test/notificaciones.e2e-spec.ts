@@ -18,7 +18,7 @@ describe('Notificaciones (e2e)', () => {
   const sufijo = Date.now().toString();
   const emailPaciente = `paciente.notif.e2e.${sufijo}@example.com`;
   const emailOtroPaciente = `otro.notif.e2e.${sufijo}@example.com`;
-  const passwordDemo = 'clave123456';
+  const passwordDemo = 'Clave123456!';
 
   let entidadId: string;
   let puntoId: string;
@@ -81,6 +81,7 @@ describe('Notificaciones (e2e)', () => {
         apellidos: 'Notif E2E',
         email: emailPaciente,
         password: passwordDemo,
+        aceptaTerminos: true,
       });
     tokenPaciente = registroPaciente.body.accessToken;
 
@@ -93,6 +94,7 @@ describe('Notificaciones (e2e)', () => {
         apellidos: 'Notif E2E',
         email: emailOtroPaciente,
         password: passwordDemo,
+        aceptaTerminos: true,
       });
     tokenOtroPaciente = registroOtroPaciente.body.accessToken;
   });

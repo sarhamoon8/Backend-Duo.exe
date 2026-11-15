@@ -158,6 +158,7 @@ Los errores conocidos de Prisma (violación de restricción única, registro no 
 La API usa JWT Bearer (`Authorization: Bearer <token>`). Hay tres roles (`Rol`): `PACIENTE`, `FUNCIONARIO`, `ADMIN`.
 
 - **Rutas públicas** (sin token): `POST /auth/register`, `POST /auth/login`, y la exploración de catálogos (`GET /entidades-medicas`, `GET /servicios`, …).
+- **Registro** (`POST /auth/register`): la contraseña debe tener 8 caracteres o más, una mayúscula, una minúscula, un número y un símbolo entre `!`, `@` y `#`; además hay que enviar `aceptaTerminos: true` (términos de uso y tratamiento de datos). La API devuelve un mensaje por cada requisito que falla. `POST /usuarios` (ADMIN) sigue pidiendo solo 6 caracteres.
 - **Rutas autenticadas sin rol específico**: accesibles a cualquier usuario con token válido (p. ej. crear tu propio turno).
 - **Rutas restringidas por rol** (`@Roles(...)`): por ejemplo, crear entidades médicas o servicios, listar todos los usuarios, o gestionar la fila (`avanzar` un turno) son operaciones de `ADMIN`/`FUNCIONARIO`.
 - Los guards (`JwtAuthGuard`, `RolesGuard`) están registrados **globalmente**; una ruta nueva requiere autenticación por defecto salvo que se marque explícitamente con `@Public()`.
