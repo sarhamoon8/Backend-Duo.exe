@@ -8,6 +8,9 @@ import { JwtAuthGuard } from './infrastructure/guards/jwt-auth.guard';
 import { RolesGuard } from './infrastructure/guards/roles.guard';
 import { LoginUseCase } from './application/use-cases/login.use-case';
 import { RegisterUseCase } from './application/use-cases/register.use-case';
+import { GoogleAuthUseCase } from './application/use-cases/google-auth.use-case';
+import { GOOGLE_TOKEN_VERIFIER } from './domain/google-token-verifier';
+import { GoogleAuthLibraryVerifier } from './infrastructure/google/google-auth-library.verifier';
 
 @Module({
   imports: [
@@ -25,6 +28,13 @@ import { RegisterUseCase } from './application/use-cases/register.use-case';
   providers: [
     LoginUseCase,
     RegisterUseCase,
+    GoogleAuthUseCase,
+    {
+      provide: GOOGLE_TOKEN_VERIFIER,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) =>
+        new GoogleAuthLibraryVerifier(config),
+    },
     // Guards globales: se aplican a toda la aplicación en este orden.
     // JwtAuthGuard debe ejecutarse antes que RolesGuard porque este
     // último depende de `request.usuario`, que JwtAuthGuard completa.
