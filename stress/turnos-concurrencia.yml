@@ -44,7 +44,8 @@ scenarios:
             nombres: "Carga"
             apellidos: "Prueba"
             email: "stress.{{ $uuid }}@example.com"
-            password: "clave123456"
+            password: "Clave123456!"
+            aceptaTerminos: true
           capture:
             - json: "$.accessToken"
               as: "token"

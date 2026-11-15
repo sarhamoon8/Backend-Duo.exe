@@ -128,7 +128,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numeroDocumento\": \"{{$randomInt}}{{$timestamp}}\",\n  \"tipoDocumento\": \"CC\",\n  \"nombres\": \"María\",\n  \"apellidos\": \"González\",\n  \"email\": \"maria.gonzalez.{{$timestamp}}@example.com\",\n  \"password\": \"clave123\",\n  \"telefono\": \"3009998877\"\n}"
+              "raw": "{\n  \"numeroDocumento\": \"{{$randomInt}}{{$timestamp}}\",\n  \"tipoDocumento\": \"CC\",\n  \"nombres\": \"María\",\n  \"apellidos\": \"González\",\n  \"email\": \"maria.gonzalez.{{$timestamp}}@example.com\",\n  \"password\": \"Clave123!\",\n  \"aceptaTerminos\": true,\n  \"telefono\": \"3009998877\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
