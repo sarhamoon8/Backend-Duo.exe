@@ -31,6 +31,9 @@ services:
       # en el shell antes de `docker compose up`.
       GMAIL_USER: ${GMAIL_USER:-}
       GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
+      # "Continuar con Google": Client ID de OAuth (ver .env.example). Sin él,
+      # el acceso con Google responde 503 y el resto de la app funciona igual.
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     ports:
       - "3000:3000"
     depends_on:
@@ -45,6 +48,7 @@ services:
     image: filacero-frontend:latest
     environment:
       API_URL: http://backend:3000
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       AUTH_COOKIE_NAME: filacero_token
       PORT: "3001"
     ports:
