@@ -78,8 +78,9 @@ export class CrearTurnoUseCase {
     await this.enviarNotificacionUseCase.ejecutar(
       usuarioId,
       TipoNotificacion.TURNO_CREADO,
-      'Turno creado',
-      `Se creó tu turno ${turno.codigoAlfanumerico} para el servicio "${servicio.nombre}" en ${punto.nombreSede}. Te damos al menos ${MINUTOS_MINIMOS_ANTES_DE_LLAMADO} minutos para llegar a la sede: no te llamaremos antes. Consulta en la app cuánto falta.`,
+      '¡Tu turno fue creado!',
+      `Tu turno para <strong>${servicio.nombre}</strong> en ${punto.nombreSede} quedó registrado. Te damos al menos ${MINUTOS_MINIMOS_ANTES_DE_LLAMADO} minutos para llegar a la sede: no te llamaremos antes. Consulta en la app cuánto falta.`,
+      turno.codigoAlfanumerico,
     );
 
     return turno;

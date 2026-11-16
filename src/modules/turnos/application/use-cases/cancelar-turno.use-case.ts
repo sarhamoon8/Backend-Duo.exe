@@ -59,8 +59,9 @@ export class CancelarTurnoUseCase {
     await this.enviarNotificacionUseCase.ejecutar(
       turno.usuarioId,
       TipoNotificacion.TURNO_CANCELADO,
-      'Turno cancelado',
-      `Tu turno ${turno.codigoAlfanumerico} fue cancelado.`,
+      'Tu turno fue cancelado',
+      'Este turno ya no está activo. Si fue un error o necesitas atención, puedes solicitar un nuevo turno cuando quieras.',
+      turno.codigoAlfanumerico,
     );
 
     // RF-04: solo tiene sentido ofrecer el cupo si lo que se liberó era

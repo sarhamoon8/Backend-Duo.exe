@@ -25,6 +25,8 @@
     "test:postman": "newman run postman/FilaCero-API.postman_collection.json --delay-request 100",
     "test:stress:turnos": "artillery run stress/turnos-concurrencia.yml",
     "test:stress:lista-espera": "artillery run stress/lista-espera-concurrencia.yml",
+    "test:stress:turnos:jmeter": "jmeter -n -t stress/jmeter/turnos-concurrencia.jmx -l stress/jmeter/results.jtl -e -o stress/jmeter/report -f",
+    "test:stress:lista-espera:jmeter": "jmeter -n -t stress/jmeter/lista-espera-concurrencia.jmx -l stress/jmeter/results-lista-espera.jtl -e -o stress/jmeter/report-lista-espera -f",
     "stress:limpiar": "ts-node --transpile-only stress/limpiar.ts",
     "db:seed": "prisma db seed"
   },

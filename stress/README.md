@@ -5,6 +5,37 @@ más sensibles a concurrencia del backend: `POST /turnos` (calcula la
 posición en fila con un `COUNT` sobre la tabla `turno`) y
 `POST /lista-espera` (mismo patrón, sobre `lista_espera`).
 
+También hay un plan equivalente en [Apache JMeter](https://jmeter.apache.org/)
+por cada escenario de Artillery (`jmeter/turnos-concurrencia.jmx` y
+`jmeter/lista-espera-concurrencia.jmx`), con el mismo flujo (registrar
+paciente → tomar servicio/punto del catálogo público → solicitar turno o
+unirse a la lista de espera), pensados para generar el dashboard HTML que
+suele pedirse como evidencia de pruebas de rendimiento. Requiere tener
+JMeter instalado y en el `PATH` (`jmeter --version` para confirmar). Corré:
+
+```bash
+npm run test:stress:turnos:jmeter
+npm run test:stress:lista-espera:jmeter
+```
+
+Cada uno deja su reporte en `stress/jmeter/report/index.html` y
+`stress/jmeter/report-lista-espera/index.html` (abrilos en el navegador) y
+los resultados crudos en los `.jtl` correspondientes. A diferencia de
+Artillery (que simula una tasa de llegada abierta, 2→20 req/s), el Thread
+Group de JMeter usa un modelo cerrado: 20 hilos con rampa de 10s sosteniendo
+la carga 40s en total — el pico de concurrencia es comparable pero no es una
+réplica exacta del modelo de carga. También dejan usuarios `STRESS-*`/
+`STRESS-LE-*`, así que aplica la misma limpieza de abajo.
+
+**Nota sobre un bug de JMeter 5.6.3 ya evitado en estos planes:** el
+`JSONPostProcessor` no soporta extraer dos variables en un solo elemento
+usando `match_numbers` separado por `;` (ej. `"1;1"`) — tira
+`ArrayIndexOutOfBoundsException` en cada corrida y la petición falla sin
+dejar rastro en el `.jtl`. Por eso cada paso que necesita más de una
+variable (como `servicioId`/`entidadId` desde `GET /servicios`) usa dos
+`JSONPostProcessor` separados, uno por variable. Si editás estos `.jmx` a
+mano, mantené ese patrón.
+
 ## Requisitos
 
 1. La API y la base de datos deben estar levantadas y accesibles en
