@@ -35,6 +35,13 @@ export class GmailSmtpProvider implements EmailProvider {
         user: this.usuarioGmail,
         pass: this.contrasenaApp,
       },
+      // Sin esto, si el proveedor de hosting bloquea el puerto SMTP
+      // saliente, nodemailer se queda colgado varios minutos (su default)
+      // antes de rechazar — y como quien llama puede estar esperando esta
+      // promesa, el request completo se cuelga con él.
+      connectionTimeout: 8_000,
+      greetingTimeout: 8_000,
+      socketTimeout: 8_000,
     });
 
     await transportador.sendMail({
