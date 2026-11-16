@@ -71,11 +71,11 @@ export class CrearTurnoUseCase {
       codigoAlfanumerico: generarCodigoTurno(),
     });
 
-    // RF-05: no se espera a que esto termine el request del cliente más
-    // de lo necesario, pero sí se espera la promesa (await) porque
-    // EnviarNotificacionUseCase ya atrapa sus propios errores y nunca
-    // rechaza — nunca puede tumbar la creación del turno.
-    await this.enviarNotificacionUseCase.ejecutar(
+    // RF-05: no se espera a que esto termine el request del cliente. El
+    // envío de correo puede demorarse (p. ej. si el proveedor de hosting
+    // bloquea el SMTP saliente) y EnviarNotificacionUseCase ya atrapa sus
+    // propios errores y nunca rechaza, así que no hay nada que esperar.
+    void this.enviarNotificacionUseCase.ejecutar(
       usuarioId,
       TipoNotificacion.TURNO_CREADO,
       '¡Tu turno fue creado!',

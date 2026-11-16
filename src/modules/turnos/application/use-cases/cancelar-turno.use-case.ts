@@ -56,7 +56,7 @@ export class CancelarTurnoUseCase {
       EstadoTurno.CANCELADO,
     );
 
-    await this.enviarNotificacionUseCase.ejecutar(
+    void this.enviarNotificacionUseCase.ejecutar(
       turno.usuarioId,
       TipoNotificacion.TURNO_CANCELADO,
       'Tu turno fue cancelado',

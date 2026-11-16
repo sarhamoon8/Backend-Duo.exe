@@ -93,7 +93,7 @@ export class AvanzarTurnoUseCase {
 
     // RF-05: "avance de turno" — es el momento en que al usuario le toca
     // pasar, el aviso con más valor práctico de todo el flujo.
-    await this.enviarNotificacionUseCase.ejecutar(
+    void this.enviarNotificacionUseCase.ejecutar(
       turno.usuarioId,
       TipoNotificacion.TURNO_EN_CURSO,
       '¡Es tu turno!',
