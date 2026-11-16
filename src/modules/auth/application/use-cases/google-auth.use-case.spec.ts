@@ -139,9 +139,12 @@ describe('GoogleAuthUseCase', () => {
         apellidos: 'Pérez',
         email: 'ana@gmail.com',
         telefono: '3001112233',
+        aceptaTerminos: true,
       }),
     );
     expect(creado.rol).toBeUndefined();
+    // Queda registrada la aceptación de los términos (se pidió en el formulario).
+    expect(creado.aceptaTerminos).toBe(true);
     // Contraseña aleatoria que nadie conoce.
     expect(creado.password.length).toBeGreaterThanOrEqual(24);
     expect(jwt.signAsync).toHaveBeenCalled();
