@@ -24,6 +24,8 @@ model Usuario {
   telefono        String?
   rol             Rol            @default(PACIENTE)
   creadoEn        DateTime       @default(now())
+  // Cuándo aceptó los términos de uso y el tratamiento de datos (autorregistro).
+  terminosAceptadosEn DateTime?
   turnos          Turno[]
   listasEspera    ListaEspera[]
   notificaciones  Notificacion[]
@@ -31,6 +33,20 @@ model Usuario {
   recordatorios   Recordatorio[]
   perfilSalud     PerfilSalud?
   citas           Cita[]
+  tokensRecuperacion TokenRecuperacion[]
+}
+
+// Enlace de recuperación de contraseña: solo se guarda el hash del token.
+model TokenRecuperacion {
+  id        String   @id @default(uuid())
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  tokenHash String   @unique
+  expiraEn  DateTime
+  usadoEn   DateTime?
+  creadoEn  DateTime @default(now())
+
+  @@index([usuarioId])
 }
 
 enum Rol {

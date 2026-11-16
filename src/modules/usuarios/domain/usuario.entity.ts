@@ -12,5 +12,6 @@ export class Usuario {
     public readonly telefono: string | null,
     public readonly rol: Rol,
     public readonly creadoEn: Date,
+    public readonly terminosAceptadosEn: Date | null = null,
   ) {}
 }
