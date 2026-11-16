@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -8,18 +7,13 @@ import {
 import { Cita } from '../../domain/cita.entity';
 import { CITA_REPOSITORY } from '../../domain/cita.repository';
 import type { CitaRepository } from '../../domain/cita.repository';
-import { HORARIO_REPOSITORY } from '../../domain/horario.repository';
-import type { HorarioRepository } from '../../domain/horario.repository';
-import { PROFESIONAL_REPOSITORY } from '../../../profesionales/domain/profesional.repository';
-import type { ProfesionalRepository } from '../../../profesionales/domain/profesional.repository';
 import { Profesional } from '../../../profesionales/domain/profesional.entity';
-import { candidatosParaFranja } from '../../domain/asignador-de-doctor';
-import { aFechaYHoraColombia, rangoDelDia } from '../../domain/franjas';
+import { mensajeCitaAgendada } from '../../domain/mensajes-cita';
+import { validarVentanaDeAgenda } from '../../domain/reglas-cita';
+import { TipoNotificacion } from '../../../notificaciones/domain/tipo-notificacion.enum';
+import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
+import { AsignadorDeDoctorService } from '../services/asignador-de-doctor.service';
 import { AgendarCitaDto } from '../dto/agendar-cita.dto';
-import { MINUTOS_MINIMOS_ANTICIPACION } from './consultar-disponibilidad.use-case';
-
-// No se agenda con más de este número de días de anticipación.
-export const DIAS_MAXIMOS_ANTICIPACION = 60;
 
 export interface CitaAgendada {
   cita: Cita;
@@ -29,18 +23,16 @@ export interface CitaAgendada {
 @Injectable()
 export class AgendarCitaUseCase {
   constructor(
-    @Inject(PROFESIONAL_REPOSITORY)
-    private readonly profesionalRepository: ProfesionalRepository,
-    @Inject(HORARIO_REPOSITORY)
-    private readonly horarioRepository: HorarioRepository,
     @Inject(CITA_REPOSITORY)
     private readonly citaRepository: CitaRepository,
+    private readonly asignador: AsignadorDeDoctorService,
+    private readonly enviarNotificacionUseCase: EnviarNotificacionUseCase,
   ) {}
 
   /**
    * Agenda la cita y le asigna AUTOMÁTICAMENTE un doctor: de la especialidad
    * y la sede pedidas, que atienda a esa hora según su horario y no tenga
-   * otra cita. Entre varios, el de menos carga ese día.
+   * otra cita. Entre varios, el de menos carga ese día. Avisa al paciente.
    */
   async ejecutar(
     dto: AgendarCitaDto,
@@ -48,26 +40,14 @@ export class AgendarCitaUseCase {
     ahora: Date = new Date(),
   ): Promise<CitaAgendada> {
     const fechaHora = new Date(dto.fechaHora);
-    if (Number.isNaN(fechaHora.getTime())) {
-      throw new BadRequestException('La fecha y hora no son válidas');
-    }
-    const antelacionMin = (fechaHora.getTime() - ahora.getTime()) / 60_000;
-    if (antelacionMin < MINUTOS_MINIMOS_ANTICIPACION) {
-      throw new BadRequestException(
-        `La cita debe pedirse con al menos ${MINUTOS_MINIMOS_ANTICIPACION} minutos de anticipación`,
-      );
-    }
-    if (antelacionMin > DIAS_MAXIMOS_ANTICIPACION * 24 * 60) {
-      throw new BadRequestException(
-        `Solo se puede agendar hasta con ${DIAS_MAXIMOS_ANTICIPACION} días de anticipación`,
-      );
-    }
+    validarVentanaDeAgenda(fechaHora, ahora);
 
-    const profesionales = await this.profesionalRepository.listar({
-      puntoId: dto.puntoId,
-      especialidad: dto.especialidad,
-    });
-    if (profesionales.length === 0) {
+    const { hayDoctores, candidatos } = await this.asignador.candidatos(
+      dto.puntoId,
+      dto.especialidad,
+      fechaHora,
+    );
+    if (!hayDoctores) {
       throw new NotFoundException(
         'No hay doctores de esa especialidad en la sede elegida',
       );
@@ -76,20 +56,6 @@ export class AgendarCitaUseCase {
     if (await this.citaRepository.pacienteTieneCitaEn(pacienteId, fechaHora)) {
       throw new ConflictException('Ya tienes una cita programada a esa hora');
     }
-
-    const { fecha, hora } = aFechaYHoraColombia(fechaHora);
-    const ids = profesionales.map((p) => p.id);
-    const horarios = await this.horarioRepository.listarPorProfesionales(ids);
-    const { desde, hasta } = rangoDelDia(fecha);
-    const ocupadas = await this.citaRepository.ocupadasEntre(ids, desde, hasta);
-
-    const candidatos = candidatosParaFranja({
-      profesionales,
-      horarios,
-      ocupadas,
-      fecha,
-      hora,
-    });
 
     // Si otro paciente toma la hora al mismo tiempo, se prueba con el siguiente.
     for (const profesional of candidatos) {
@@ -100,7 +66,15 @@ export class AgendarCitaUseCase {
         especialidad: profesional.especialidad,
         fechaHora,
       });
-      if (cita) return { cita, profesional };
+      if (cita) {
+        await this.enviarNotificacionUseCase.ejecutar(
+          pacienteId,
+          TipoNotificacion.CITA_AGENDADA,
+          'Cita confirmada',
+          mensajeCitaAgendada(cita.especialidad, cita.fechaHora, profesional),
+        );
+        return { cita, profesional };
+      }
     }
 
     throw new ConflictException(

@@ -30,6 +30,7 @@ const config: Config = {
   // mappers, repositorios Prisma y guards se cubren con las pruebas de
   // integración/e2e, no con unitarias, así que no entran aquí.
   coverageThreshold: {
+    global: {},
     './src/**/application/use-cases/*.ts': {
       statements: 90,
       branches: 75,

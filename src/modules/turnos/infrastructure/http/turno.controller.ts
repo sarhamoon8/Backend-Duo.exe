@@ -16,6 +16,8 @@ import { CancelarTurnoUseCase } from '../../application/use-cases/cancelar-turno
 import { ListarTurnosPorPuntoUseCase } from '../../application/use-cases/listar-turnos-por-punto.use-case';
 import { ListarMisTurnosUseCase } from '../../application/use-cases/listar-mis-turnos.use-case';
 import { ObtenerTurnoUseCase } from '../../application/use-cases/obtener-turno.use-case';
+import { EstimarLlamadoTurnoUseCase } from '../../application/use-cases/estimar-llamado-turno.use-case';
+import { Turno } from '../../domain/turno.entity';
 import { ObtenerPosicionTurnoUseCase } from '../../application/use-cases/obtener-posicion-turno.use-case';
 import { CrearTurnoDto } from '../../application/dto/crear-turno.dto';
 import { AvanzarTurnoDto } from '../../application/dto/avanzar-turno.dto';
@@ -36,7 +38,18 @@ export class TurnoController {
     private readonly listarMisTurnosUseCase: ListarMisTurnosUseCase,
     private readonly obtenerTurnoUseCase: ObtenerTurnoUseCase,
     private readonly obtenerPosicionTurnoUseCase: ObtenerPosicionTurnoUseCase,
+    private readonly estimarLlamadoTurnoUseCase: EstimarLlamadoTurnoUseCase,
   ) {}
+
+  // Posición en la fila y estimación de en cuánto tiempo lo llamarán.
+  private async aRespuesta(turno: Turno): Promise<TurnoResponseDto> {
+    const posicion = await this.obtenerPosicionTurnoUseCase.ejecutar(turno);
+    const estimacion = await this.estimarLlamadoTurnoUseCase.ejecutar(
+      turno,
+      posicion,
+    );
+    return TurnoResponseDto.fromEntity(turno, posicion, estimacion);
+  }
 
   // El turno siempre se crea a nombre de quien está autenticado: el id
   // se toma del token, nunca del body.
@@ -50,8 +63,7 @@ export class TurnoController {
       dto,
       request.usuario!.sub,
     );
-    const posicion = await this.obtenerPosicionTurnoUseCase.ejecutar(turno);
-    return TurnoResponseDto.fromEntity(turno, posicion);
+    return this.aRespuesta(turno);
   }
 
   // "La cara" de FilaCero para el paciente: sus propios turnos, con
@@ -68,14 +80,7 @@ export class TurnoController {
     const turnos = await this.listarMisTurnosUseCase.ejecutar(
       request.usuario!.sub,
     );
-    return Promise.all(
-      turnos.map(async (turno) => {
-        const posicion = await this.obtenerPosicionTurnoUseCase.ejecutar(
-          turno,
-        );
-        return TurnoResponseDto.fromEntity(turno, posicion);
-      }),
-    );
+    return Promise.all(turnos.map((turno) => this.aRespuesta(turno)));
   }
 
   // Ver la fila de un punto de dispensación (opcionalmente filtrada por
@@ -114,8 +119,7 @@ export class TurnoController {
       throw new ForbiddenException('No puedes consultar el turno de otro usuario');
     }
 
-    const posicion = await this.obtenerPosicionTurnoUseCase.ejecutar(turno);
-    return TurnoResponseDto.fromEntity(turno, posicion);
+    return this.aRespuesta(turno);
   }
 
   // Avanzar el turno (llamar al siguiente / finalizar atención) es una
@@ -136,8 +140,7 @@ export class TurnoController {
       id,
       dto.ventanillaId,
     );
-    const posicion = await this.obtenerPosicionTurnoUseCase.ejecutar(turno);
-    return TurnoResponseDto.fromEntity(turno, posicion);
+    return this.aRespuesta(turno);
   }
 
   // Cancelar permite tanto al dueño del turno como al personal de
@@ -155,7 +158,6 @@ export class TurnoController {
     });
     // Un turno recién cancelado nunca está PENDIENTE, pero se reutiliza
     // el mismo caso de uso para mantener una sola fuente de verdad.
-    const posicion = await this.obtenerPosicionTurnoUseCase.ejecutar(turno);
-    return TurnoResponseDto.fromEntity(turno, posicion);
+    return this.aRespuesta(turno);
   }
 }

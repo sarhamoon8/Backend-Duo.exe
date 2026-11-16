@@ -12,6 +12,10 @@ import { VENTANILLA_REPOSITORY } from '../../../ventanillas/domain/ventanilla.re
 import type { VentanillaRepository } from '../../../ventanillas/domain/ventanilla.repository';
 import { EstadoOperativoVentanilla } from '../../../ventanillas/domain/estado-operativo-ventanilla.enum';
 import { EnviarNotificacionUseCase } from '../../../notificaciones/application/use-cases/enviar-notificacion.use-case';
+import {
+  formatearHoraColombia,
+  llamableDesde,
+} from '../../domain/tiempo-espera';
 import { TipoNotificacion } from '../../../notificaciones/domain/tipo-notificacion.enum';
 
 @Injectable()
@@ -24,14 +28,18 @@ export class AvanzarTurnoUseCase {
     private readonly enviarNotificacionUseCase: EnviarNotificacionUseCase,
   ) {}
 
-  async ejecutar(id: string, ventanillaId?: string): Promise<Turno> {
+  async ejecutar(
+    id: string,
+    ventanillaId?: string,
+    ahora: Date = new Date(),
+  ): Promise<Turno> {
     const turno = await this.turnoRepository.buscarPorId(id);
     if (!turno) {
       throw new NotFoundException('Turno no encontrado');
     }
 
     if (turno.estado === EstadoTurno.PENDIENTE) {
-      return this.iniciarAtencion(turno, ventanillaId);
+      return this.iniciarAtencion(turno, ventanillaId, ahora);
     }
 
     if (turno.estado === EstadoTurno.EN_CURSO) {
@@ -46,6 +54,7 @@ export class AvanzarTurnoUseCase {
   private async iniciarAtencion(
     turno: Turno,
     ventanillaId?: string,
+    ahora: Date = new Date(),
   ): Promise<Turno> {
     if (!ventanillaId) {
       throw new BadRequestException(
@@ -66,6 +75,15 @@ export class AvanzarTurnoUseCase {
     }
     if (ventanilla.estadoOperativo !== EstadoOperativoVentanilla.ACTIVA) {
       throw new BadRequestException('La ventanilla no está activa');
+    }
+
+    // Margen de llegada: a quien acaba de sacar su turno se le da tiempo para
+    // llegar a la sede antes de poder llamarlo.
+    const desde = llamableDesde(turno.creadoEn);
+    if (ahora.getTime() < desde.getTime()) {
+      throw new BadRequestException(
+        `Este turno aún no se puede llamar: la persona tiene hasta las ${formatearHoraColombia(desde)} para llegar a la sede`,
+      );
     }
 
     const enCurso = await this.turnoRepository.iniciarAtencion(

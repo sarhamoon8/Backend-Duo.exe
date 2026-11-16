@@ -308,7 +308,6 @@ describe('CrearTurnoUseCase', () => {
       buscarPorId: jest.fn().mockResolvedValue(puntoMismaEntidad),
     });
     const enviarNotificacion = crearEnviarNotificacionFalso();
-    enviarNotificacion.ejecutar.mockResolvedValue(undefined);
     const useCase = new CrearTurnoUseCase(
       turnoRepo,
       usuarioRepo,

@@ -90,6 +90,28 @@ export class PrismaCitaRepository implements CitaRepository {
     return cantidad > 0;
   }
 
+  async reprogramar(
+    id: string,
+    profesionalId: string,
+    fechaHora: Date,
+  ): Promise<Cita | null> {
+    try {
+      const cita = await this.prisma.cita.update({
+        where: { id },
+        data: { profesionalId, fechaHora },
+      });
+      return aDominio(cita);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
   async cancelar(id: string): Promise<Cita> {
     const cita = await this.prisma.cita.update({
       where: { id },

@@ -18,7 +18,7 @@ describe('Bitácora de peticiones (e2e)', () => {
   const sufijo = Date.now().toString();
   const emailAdmin = `admin.logs.e2e.${sufijo}@example.com`;
   const emailPaciente = `paciente.logs.e2e.${sufijo}@example.com`;
-  const passwordDemo = 'clave123456';
+  const passwordDemo = 'Clave123456!';
 
   let tokenAdmin: string;
   let tokenPaciente: string;
@@ -68,6 +68,7 @@ describe('Bitácora de peticiones (e2e)', () => {
         apellidos: 'Logs E2E',
         email: emailPaciente,
         password: passwordDemo,
+        aceptaTerminos: true,
       });
     tokenPaciente = registroPaciente.body.accessToken;
 

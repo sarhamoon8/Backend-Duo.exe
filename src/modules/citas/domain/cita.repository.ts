@@ -28,6 +28,13 @@ export interface CitaRepository {
   ): Promise<OcupacionCita[]>;
   pacienteTieneCitaEn(pacienteId: string, fechaHora: Date): Promise<boolean>;
   cancelar(id: string): Promise<Cita>;
+  // Cambia la hora (y el doctor) de una cita. Devuelve null si el doctor ya
+  // tiene una cita activa a esa hora.
+  reprogramar(
+    id: string,
+    profesionalId: string,
+    fechaHora: Date,
+  ): Promise<Cita | null>;
 }
 
 export const CITA_REPOSITORY = Symbol('CITA_REPOSITORY');

@@ -52,7 +52,7 @@ function crearTurno(estado: EstadoTurno, puntoId = 'punto-1'): Turno {
     false,
     null,
     null,
-    new Date(),
+    new Date(Date.now() - 60 * 60_000), // creado hace una hora: ya pasó el margen de llegada
   );
 }
 
@@ -157,6 +157,42 @@ describe('AvanzarTurnoUseCase', () => {
       turno.id,
       'ventanilla-1',
     );
+  });
+
+  it('no llama un turno recién creado: se le da margen para llegar a la sede', async () => {
+    const recien = new Turno(
+      'turno-1',
+      'usuario-1',
+      'servicio-1',
+      'punto-1',
+      null,
+      'T-ABC123',
+      EstadoTurno.PENDIENTE,
+      false,
+      null,
+      null,
+      new Date('2026-11-16T14:00:00.000Z'),
+    );
+    const turnos = crearRepositorioTurnoFalso({
+      buscarPorId: jest.fn().mockResolvedValue(recien),
+    });
+    const ventanillas = crearRepositorioVentanillaFalso({
+      buscarPorId: jest
+        .fn()
+        .mockResolvedValue(crearVentanilla({ puntoId: 'punto-1' })),
+    });
+    const useCase = new AvanzarTurnoUseCase(turnos, ventanillas, crearEnviarNotificacionFalso());
+
+    // 10 minutos después de crearlo: todavía dentro del margen de 15.
+    await expect(
+      useCase.ejecutar(recien.id, 'ventanilla-1', new Date('2026-11-16T14:10:00.000Z')),
+    ).rejects.toThrow(BadRequestException);
+    expect(turnos.iniciarAtencion).not.toHaveBeenCalled();
+
+    // Pasado el margen sí se puede llamar.
+    turnos.iniciarAtencion.mockResolvedValue(crearTurno(EstadoTurno.EN_CURSO, 'punto-1'));
+    await useCase.ejecutar(recien.id, 'ventanilla-1', new Date('2026-11-16T14:15:00.000Z'));
+    expect(turnos.iniciarAtencion).toHaveBeenCalledWith(recien.id, 'ventanilla-1');
   });
 
   it('finaliza la atención (EN_CURSO -> ATENDIDO) sin requerir ventanillaId', async () => {
