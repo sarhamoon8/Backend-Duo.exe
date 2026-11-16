@@ -78,8 +78,9 @@ export class AvanzarTurnoUseCase {
     await this.enviarNotificacionUseCase.ejecutar(
       turno.usuarioId,
       TipoNotificacion.TURNO_EN_CURSO,
-      'Es tu turno',
-      `Tu turno ${turno.codigoAlfanumerico} está siendo atendido. Dirígete a la ventanilla.`,
+      '¡Es tu turno!',
+      'Ya estamos listos para atenderte. Dirígete a la ventanilla lo antes posible.',
+      turno.codigoAlfanumerico,
     );
 
     return enCurso;

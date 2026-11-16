@@ -10,6 +10,7 @@ import { EMAIL_PROVIDER } from '../../domain/email-provider';
 import type { EmailProvider } from '../../domain/email-provider';
 import { USUARIO_REPOSITORY } from '../../../usuarios/domain/usuario.repository';
 import type { UsuarioRepository } from '../../../usuarios/domain/usuario.repository';
+import { construirCorreoHtml } from '../../infrastructure/email/plantilla-correo';
 
 // RF-05: punto de entrada único para notificar un evento del flujo de
 // turnos a un usuario. Se usa desde otros módulos (turnos) para no
@@ -38,6 +39,7 @@ export class EnviarNotificacionUseCase {
     tipo: TipoNotificacion,
     titulo: string,
     mensaje: string,
+    codigoTurno?: string,
   ): Promise<Notificacion> {
     let estadoEnvio = EstadoEnvioNotificacion.FALLIDA;
 
@@ -46,7 +48,13 @@ export class EnviarNotificacionUseCase {
       if (!usuario) {
         throw new Error(`Usuario ${usuarioId} no encontrado`);
       }
-      await this.emailProvider.enviar(usuario.email, titulo, mensaje);
+      const correoHtml = construirCorreoHtml({
+        nombreUsuario: usuario.nombres,
+        titulo,
+        mensaje,
+        codigoTurno,
+      });
+      await this.emailProvider.enviar(usuario.email, titulo, correoHtml);
       estadoEnvio = EstadoEnvioNotificacion.ENVIADA;
     } catch (error) {
       const detalle = error instanceof Error ? error.message : String(error);
