@@ -34,6 +34,10 @@ services:
       # "Continuar con Google": Client ID de OAuth (ver .env.example). Sin él,
       # el acceso con Google responde 503 y el resto de la app funciona igual.
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      # Recuperar contraseña: URL pública del frontend (va en el enlace del
+      # correo) y, solo para desarrollo sin Gmail, registrar el enlace en los logs.
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001}
+      RECUPERACION_REGISTRAR_ENLACE: ${RECUPERACION_REGISTRAR_ENLACE:-true}
     ports:
       - "3000:3000"
     depends_on:

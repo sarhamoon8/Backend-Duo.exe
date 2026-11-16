@@ -17,6 +17,7 @@ export class UsuarioMapper {
       usuarioPrisma.telefono,
       usuarioPrisma.rol as unknown as Rol,
       usuarioPrisma.creadoEn,
+      usuarioPrisma.terminosAceptadosEn,
     );
   }
 }
