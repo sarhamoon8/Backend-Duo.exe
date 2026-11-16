@@ -81,6 +81,7 @@ export class GoogleAuthUseCase {
       email: perfil.email,
       password: randomBytes(24).toString('base64url'),
       telefono: dto.telefono?.trim() || undefined,
+      aceptaTerminos: true,
     });
   }
 }

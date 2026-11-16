@@ -15,7 +15,11 @@ export class CrearUsuarioUseCase {
     private readonly usuarioRepository: UsuarioRepository,
   ) {}
 
-  async ejecutar(dto: CrearUsuarioDto): Promise<Usuario> {
+  // `aceptaTerminos` solo llega desde el autorregistro (formulario y Google);
+  // el alta que hace un ADMIN no la lleva y no registra aceptación.
+  async ejecutar(
+    dto: CrearUsuarioDto & { aceptaTerminos?: boolean },
+  ): Promise<Usuario> {
     const emailExistente = await this.usuarioRepository.buscarPorEmail(
       dto.email,
     );
@@ -42,6 +46,7 @@ export class CrearUsuarioUseCase {
       password: passwordHasheado,
       telefono: dto.telefono,
       rol: dto.rol ?? Rol.PACIENTE,
+      terminosAceptadosEn: dto.aceptaTerminos ? new Date() : null,
     });
   }
 }

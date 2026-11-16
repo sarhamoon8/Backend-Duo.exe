@@ -17,11 +17,15 @@ import { MarcarNotificacionLeidaUseCase } from './application/use-cases/marcar-n
     EnviarNotificacionUseCase,
     ListarMisNotificacionesUseCase,
     MarcarNotificacionLeidaUseCase,
-    { provide: NOTIFICACION_REPOSITORY, useClass: PrismaNotificacionRepository },
+    {
+      provide: NOTIFICACION_REPOSITORY,
+      useClass: PrismaNotificacionRepository,
+    },
     { provide: EMAIL_PROVIDER, useClass: GmailSmtpProvider },
   ],
   // TurnosModule la importa para notificar al crear/cancelar/avanzar un
   // turno y al reasignar desde la lista de espera (RF-05).
-  exports: [EnviarNotificacionUseCase],
+  // EMAIL_PROVIDER también lo usa AuthModule (correo de recuperación de contraseña).
+  exports: [EnviarNotificacionUseCase, EMAIL_PROVIDER],
 })
 export class NotificacionesModule {}

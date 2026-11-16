@@ -14,6 +14,7 @@ function crearRepositorioFalso(
     buscarPorEmail: jest.fn(),
     buscarPorNumeroDocumento: jest.fn(),
     listar: jest.fn(),
+    actualizarPassword: jest.fn(),
     ...overrides,
   } as jest.Mocked<UsuarioRepository>;
 }
@@ -174,5 +175,34 @@ describe('CrearUsuarioUseCase', () => {
     });
 
     expect(repositorio.crear.mock.calls[0][0].rol).toBe(Rol.ADMIN);
+  });
+
+  it('registra cuándo se aceptaron los términos si vienen aceptados (autorregistro)', async () => {
+    const repositorio = crearRepositorioFalso({
+      buscarPorEmail: jest.fn().mockResolvedValue(null),
+      buscarPorNumeroDocumento: jest.fn().mockResolvedValue(null),
+      crear: jest.fn().mockResolvedValue(crearUsuario()),
+    });
+    const useCase = new CrearUsuarioUseCase(repositorio);
+    const antes = Date.now();
+
+    await useCase.ejecutar({ ...dto, aceptaTerminos: true });
+
+    const aceptadosEn = repositorio.crear.mock.calls[0][0].terminosAceptadosEn;
+    expect(aceptadosEn).toBeInstanceOf(Date);
+    expect(aceptadosEn!.getTime()).toBeGreaterThanOrEqual(antes);
+  });
+
+  it('no registra aceptación en el alta que hace un administrador', async () => {
+    const repositorio = crearRepositorioFalso({
+      buscarPorEmail: jest.fn().mockResolvedValue(null),
+      buscarPorNumeroDocumento: jest.fn().mockResolvedValue(null),
+      crear: jest.fn().mockResolvedValue(crearUsuario()),
+    });
+    const useCase = new CrearUsuarioUseCase(repositorio);
+
+    await useCase.ejecutar(dto);
+
+    expect(repositorio.crear.mock.calls[0][0].terminosAceptadosEn).toBeNull();
   });
 });

@@ -23,6 +23,7 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
         password: usuario.password,
         telefono: usuario.telefono,
         rol: usuario.rol as unknown as PrismaRol,
+        terminosAceptadosEn: usuario.terminosAceptadosEn,
       },
     });
     return UsuarioMapper.toDomain(creado);
@@ -49,6 +50,16 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
       where: { numeroDocumento },
     });
     return usuario ? UsuarioMapper.toDomain(usuario) : null;
+  }
+
+  async actualizarPassword(
+    id: string,
+    passwordHasheado: string,
+  ): Promise<void> {
+    await this.prisma.usuario.update({
+      where: { id },
+      data: { password: passwordHasheado },
+    });
   }
 
   async listar(): Promise<Usuario[]> {
