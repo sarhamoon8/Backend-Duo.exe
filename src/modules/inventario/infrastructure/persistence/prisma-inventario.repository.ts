@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../shared/infrastructure/prisma/prisma.service';
 import { Inventario } from '../../domain/inventario.entity';
 import {
+  AjusteStock,
   NuevoInventario,
   InventarioRepository,
 } from '../../domain/inventario.repository';
@@ -32,5 +33,34 @@ export class PrismaInventarioRepository implements InventarioRepository {
       where: medicamentoId ? { puntoId, medicamentoId } : { puntoId },
     });
     return registros.map(InventarioMapper.toDomain);
+  }
+
+  async buscarPorId(id: string): Promise<Inventario | null> {
+    const registro = await this.prisma.inventario.findUnique({
+      where: { id },
+    });
+    return registro ? InventarioMapper.toDomain(registro) : null;
+  }
+
+  async listarPorMedicamento(medicamentoId: string): Promise<Inventario[]> {
+    const registros = await this.prisma.inventario.findMany({
+      where: { medicamentoId },
+    });
+    return registros.map(InventarioMapper.toDomain);
+  }
+
+  async ajustarStock(id: string, cambios: AjusteStock): Promise<Inventario> {
+    const actualizado = await this.prisma.inventario.update({
+      where: { id },
+      data: {
+        stockActual: cambios.deltaStockActual
+          ? { increment: cambios.deltaStockActual }
+          : undefined,
+        stockReservado: cambios.deltaStockReservado
+          ? { increment: cambios.deltaStockReservado }
+          : undefined,
+      },
+    });
+    return InventarioMapper.toDomain(actualizado);
   }
 }

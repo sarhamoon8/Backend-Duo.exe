@@ -8,6 +8,9 @@ function crearInventarioRepoFalso(
   return {
     crear: jest.fn(),
     listarPorPunto: jest.fn(),
+    buscarPorId: jest.fn(),
+    listarPorMedicamento: jest.fn(),
+    ajustarStock: jest.fn(),
     ...overrides,
   } as jest.Mocked<InventarioRepository>;
 }

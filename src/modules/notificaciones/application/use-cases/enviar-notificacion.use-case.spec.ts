@@ -97,8 +97,9 @@ describe('EnviarNotificacionUseCase', () => {
     expect(emailProvider.enviar).toHaveBeenCalledWith(
       'ana@example.com',
       'Turno creado',
-      'mensaje',
+      expect.stringContaining('mensaje'),
     );
+    expect(emailProvider.enviar.mock.calls[0][2]).toContain('Ana');
     expect(resultado.estadoEnvio).toBe(EstadoEnvioNotificacion.ENVIADA);
   });
 

@@ -14,19 +14,22 @@ datasource db {
 }
 
 model Usuario {
-  id              String   @id @default(uuid())
-  numeroDocumento String   @unique
+  id              String         @id @default(uuid())
+  numeroDocumento String         @unique
   tipoDocumento   String
   nombres         String
   apellidos       String
-  email           String   @unique
+  email           String         @unique
   password        String
   telefono        String?
-  rol             Rol      @default(PACIENTE)
-  creadoEn        DateTime @default(now())
+  rol             Rol            @default(PACIENTE)
+  creadoEn        DateTime       @default(now())
   turnos          Turno[]
   listasEspera    ListaEspera[]
   notificaciones  Notificacion[]
+  reservas        Reserva[]
+  recordatorios   Recordatorio[]
+  perfilSalud     PerfilSalud?
   citas           Cita[]
 }
 
@@ -43,15 +46,15 @@ enum Rol {
 // si Resend falla o no hay API key configurada, igual queda el registro
 // con estadoEnvio FALLIDA.
 model Notificacion {
-  id          String                    @id @default(uuid())
-  usuario     Usuario                   @relation(fields: [usuarioId], references: [id])
+  id          String                  @id @default(uuid())
+  usuario     Usuario                 @relation(fields: [usuarioId], references: [id])
   usuarioId   String
   tipo        TipoNotificacion
   titulo      String
   mensaje     String
   estadoEnvio EstadoEnvioNotificacion
-  leida       Boolean                   @default(false)
-  creadoEn    DateTime                  @default(now())
+  leida       Boolean                 @default(false)
+  creadoEn    DateTime                @default(now())
 
   @@index([usuarioId])
 }
@@ -97,7 +100,7 @@ model Servicio {
 // Sede física de una EntidadMedica (PUNTO_DISPENSACION en el modelo
 // relacional completo, sección 15.1 de PROJECT_CONTEXT.md).
 model PuntoDispensacion {
-  id                String       @id @default(uuid())
+  id                String        @id @default(uuid())
   entidad           EntidadMedica @relation(fields: [entidadId], references: [id])
   entidadId         String
   nombreSede        String
@@ -110,6 +113,7 @@ model PuntoDispensacion {
   inventario        Inventario[]
   listasEspera      ListaEspera[]
   profesionales     Profesional[]
+  reservas          Reserva[]
   citas             Cita[]
 }
 
@@ -180,7 +184,7 @@ enum EstadoOperativoVentanilla {
 
 model Ventanilla {
   id                String                    @id @default(uuid())
-  puntoDispensacion PuntoDispensacion          @relation(fields: [puntoId], references: [id])
+  puntoDispensacion PuntoDispensacion         @relation(fields: [puntoId], references: [id])
   puntoId           String
   numeroModulo      String
   estadoOperativo   EstadoOperativoVentanilla @default(ACTIVA)
@@ -190,21 +194,21 @@ model Ventanilla {
 }
 
 model Turno {
-  id                 String      @id @default(uuid())
-  usuario            Usuario     @relation(fields: [usuarioId], references: [id])
+  id                 String            @id @default(uuid())
+  usuario            Usuario           @relation(fields: [usuarioId], references: [id])
   usuarioId          String
-  servicio           Servicio    @relation(fields: [servicioId], references: [id])
+  servicio           Servicio          @relation(fields: [servicioId], references: [id])
   servicioId         String
   puntoDispensacion  PuntoDispensacion @relation(fields: [puntoId], references: [id])
   puntoId            String
-  ventanilla         Ventanilla? @relation(fields: [ventanillaId], references: [id])
+  ventanilla         Ventanilla?       @relation(fields: [ventanillaId], references: [id])
   ventanillaId       String?
-  codigoAlfanumerico String      @unique
-  estado             EstadoTurno @default(PENDIENTE)
-  prioridad          Boolean     @default(false)
+  codigoAlfanumerico String            @unique
+  estado             EstadoTurno       @default(PENDIENTE)
+  prioridad          Boolean           @default(false)
   horaLlamado        DateTime?
   horaFinalizacion   DateTime?
-  creadoEn           DateTime    @default(now())
+  creadoEn           DateTime          @default(now())
 
   // La posición en la fila se calcula en tiempo de consulta a partir de
   // creadoEn (ver ObtenerPosicionTurnoUseCase); no se persiste porque un
@@ -225,15 +229,17 @@ enum EstadoTurno {
 // completo, sección 15.1 de PROJECT_CONTEXT.md). Solo el catálogo y su
 // disponibilidad por punto (Inventario); reserva (RF-07) queda para después.
 model Medicamento {
-  id                    String       @id @default(uuid())
-  codigoNacional        String       @unique
+  id                    String         @id @default(uuid())
+  codigoNacional        String         @unique
   nombreGenerico        String
   concentracion         String
   presentacion          String
   laboratorioFabricante String
-  requiereAutorizacion  Boolean      @default(false)
-  creadoEn              DateTime     @default(now())
+  requiereAutorizacion  Boolean        @default(false)
+  creadoEn              DateTime       @default(now())
   inventario            Inventario[]
+  reservas              Reserva[]
+  recordatorios         Recordatorio[]
 }
 
 // Disponibilidad de un medicamento (por lote) en un punto de dispensación
@@ -250,6 +256,7 @@ model Inventario {
   stockActual       Int
   stockReservado    Int               @default(0)
   fechaVencimiento  DateTime
+  reservas          Reserva[]
   creadoEn          DateTime          @default(now())
 
   @@unique([puntoId, medicamentoId, lote])
@@ -293,4 +300,65 @@ model LogPeticion {
 
   @@index([creadoEn])
   @@index([codigoEstado])
+}
+
+enum EstadoReserva {
+  ACTIVA
+  RECLAMADA
+  CANCELADA
+  EXPIRADA
+}
+
+// RF-07: reserva temporal de un medicamento disponible, ventana de 24-48h
+// antes de liberar el stock. stockReservado en Inventario (sección 15.1 de
+// PROJECT_CONTEXT.md) existía desde RF-06 justamente para esto.
+model Reserva {
+  id                String            @id @default(uuid())
+  usuario           Usuario           @relation(fields: [usuarioId], references: [id])
+  usuarioId         String
+  puntoDispensacion PuntoDispensacion @relation(fields: [puntoId], references: [id])
+  puntoId           String
+  medicamento       Medicamento       @relation(fields: [medicamentoId], references: [id])
+  medicamentoId     String
+  inventario        Inventario        @relation(fields: [inventarioId], references: [id])
+  inventarioId      String
+  cantidadReservada Int
+  estado            EstadoReserva     @default(ACTIVA)
+  fechaSolicitud    DateTime          @default(now())
+  fechaExpiracion   DateTime
+
+  @@index([usuarioId])
+  @@index([medicamentoId, puntoId, estado])
+}
+
+// RF-08: medicamento de uso habitual del paciente con recordatorio de toma.
+// También sirve como "historial" de medicamentos que el usuario sigue
+// activamente (el historial de reservas/entregas ya se consulta vía Reserva).
+model Recordatorio {
+  id               String      @id @default(uuid())
+  usuario          Usuario     @relation(fields: [usuarioId], references: [id])
+  usuarioId        String
+  medicamento      Medicamento @relation(fields: [medicamentoId], references: [id])
+  medicamentoId    String
+  mensaje          String
+  horaRecordatorio String
+  activo           Boolean     @default(true)
+  creadoEn         DateTime    @default(now())
+
+  @@index([usuarioId])
+}
+
+// RF-10: información básica de salud, autorreportada por el propio paciente
+// (no son datos clínicos de la EPS ni un diagnóstico — ver restricciones de
+// alcance en PROJECT_CONTEXT.md sección 19).
+model PerfilSalud {
+  id                         String   @id @default(uuid())
+  usuario                    Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId                  String   @unique
+  grupoSanguineo             String?
+  alergias                   String?
+  condicionesCronicas        String?
+  contactoEmergenciaNombre   String?
+  contactoEmergenciaTelefono String?
+  actualizadoEn              DateTime @updatedAt
 }

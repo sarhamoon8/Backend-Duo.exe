@@ -1,26 +1,49 @@
 import { NotFoundException } from '@nestjs/common';
 import { ObtenerProfesionalUseCase } from './obtener-profesional.use-case';
-import { Profesional } from '../../domain/profesional.entity';
 import { ProfesionalRepository } from '../../domain/profesional.repository';
+import { Profesional } from '../../domain/profesional.entity';
 
-function repositorio(resultado: Profesional | null) {
+function crearProfesionalRepoFalso(
+  overrides: Partial<ProfesionalRepository> = {},
+): jest.Mocked<ProfesionalRepository> {
   return {
     crear: jest.fn(),
-    buscarPorId: jest.fn().mockResolvedValue(resultado),
+    buscarPorId: jest.fn(),
     buscarPorRegistroMedico: jest.fn(),
     listar: jest.fn(),
+    ...overrides,
   } as jest.Mocked<ProfesionalRepository>;
 }
 
 describe('ObtenerProfesionalUseCase', () => {
-  it('lanza NotFound si el profesional no existe', async () => {
-    const useCase = new ObtenerProfesionalUseCase(repositorio(null));
-    await expect(useCase.ejecutar('x')).rejects.toBeInstanceOf(NotFoundException);
+  it('rechaza si el profesional no existe', async () => {
+    const repo = crearProfesionalRepoFalso({
+      buscarPorId: jest.fn().mockResolvedValue(null),
+    });
+    const useCase = new ObtenerProfesionalUseCase(repo);
+
+    await expect(useCase.ejecutar('prof-1')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
-  it('devuelve el profesional cuando existe', async () => {
-    const profesional = new Profesional('id-1', 'RM-1', 'Ana', 'Pérez', 'Pediatría', true, 'p-1');
-    const useCase = new ObtenerProfesionalUseCase(repositorio(profesional));
-    await expect(useCase.ejecutar('id-1')).resolves.toBe(profesional);
+  it('retorna el profesional cuando existe', async () => {
+    const profesional = new Profesional(
+      'prof-1',
+      'RM-001',
+      'Ana',
+      'Pérez',
+      'Medicina General',
+      true,
+      'punto-1',
+    );
+    const repo = crearProfesionalRepoFalso({
+      buscarPorId: jest.fn().mockResolvedValue(profesional),
+    });
+    const useCase = new ObtenerProfesionalUseCase(repo);
+
+    const resultado = await useCase.ejecutar('prof-1');
+
+    expect(resultado).toBe(profesional);
   });
 });

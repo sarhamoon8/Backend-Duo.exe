@@ -46,8 +46,9 @@ export class ReasignarDesdeListaEsperaUseCase {
     await this.enviarNotificacionUseCase.ejecutar(
       siguiente.usuarioId,
       TipoNotificacion.TURNO_REASIGNADO,
-      'Se liberó un turno para ti',
-      `Un cupo se liberó y te asignamos el turno ${turno.codigoAlfanumerico}.`,
+      '¡Se liberó un cupo para ti!',
+      'Gracias a tu lugar en la lista de espera, te asignamos un nuevo turno. No lo pierdas.',
+      turno.codigoAlfanumerico,
     );
 
     return turno;

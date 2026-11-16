@@ -127,4 +127,50 @@ describe('PrismaInventarioRepository (integración)', () => {
       }),
     ).rejects.toThrow(Prisma.PrismaClientKnownRequestError);
   });
+
+  it('buscarPorId devuelve null si no existe', async () => {
+    const resultado = await repo.buscarPorId(
+      '00000000-0000-0000-0000-000000000000',
+    );
+    expect(resultado).toBeNull();
+  });
+
+  it('ajustarStock incrementa y decrementa stockActual y stockReservado', async () => {
+    const creado = await repo.crear({
+      puntoId,
+      medicamentoId: medicamentoAId,
+      lote: `LOTE-INT-AJUSTE-${sufijo}`,
+      stockActual: 10,
+      fechaVencimiento: new Date('2027-06-01'),
+    });
+
+    const apartado = await repo.ajustarStock(creado.id, {
+      deltaStockReservado: 3,
+    });
+    expect(apartado.stockReservado).toBe(3);
+    expect(apartado.stockActual).toBe(10);
+
+    const entregado = await repo.ajustarStock(creado.id, {
+      deltaStockActual: -3,
+      deltaStockReservado: -3,
+    });
+    expect(entregado.stockActual).toBe(7);
+    expect(entregado.stockReservado).toBe(0);
+  });
+
+  it('listarPorMedicamento devuelve los lotes de ese medicamento en cualquier punto', async () => {
+    const creado = await repo.crear({
+      puntoId,
+      medicamentoId: medicamentoBId,
+      lote: `LOTE-INT-PORMED-${sufijo}`,
+      stockActual: 5,
+      fechaVencimiento: new Date('2027-06-01'),
+    });
+
+    const lotes = await repo.listarPorMedicamento(medicamentoBId);
+    const ids = lotes.map((l) => l.id);
+
+    expect(ids).toContain(creado.id);
+    expect(lotes.every((l) => l.medicamentoId === medicamentoBId)).toBe(true);
+  });
 });

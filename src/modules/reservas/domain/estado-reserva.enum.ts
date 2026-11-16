@@ -1,0 +1,6 @@
+export enum EstadoReserva {
+  ACTIVA = 'ACTIVA',
+  RECLAMADA = 'RECLAMADA',
+  CANCELADA = 'CANCELADA',
+  EXPIRADA = 'EXPIRADA',
+}
