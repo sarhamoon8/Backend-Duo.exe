@@ -43,7 +43,7 @@ export class ReasignarDesdeListaEsperaUseCase {
     // RF-05: "nuevas oportunidades de citas" — se liberó un cupo y esta
     // persona, que solo estaba en lista de espera, ahora tiene un turno
     // real sin haber hecho nada.
-    await this.enviarNotificacionUseCase.ejecutar(
+    void this.enviarNotificacionUseCase.ejecutar(
       siguiente.usuarioId,
       TipoNotificacion.TURNO_REASIGNADO,
       '¡Se liberó un cupo para ti!',
