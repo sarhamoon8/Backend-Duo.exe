@@ -30,7 +30,12 @@ export class GmailSmtpProvider implements EmailProvider {
     }
 
     const transportador = nodemailer.createTransport({
-      service: 'gmail',
+      // `service: 'gmail'` apunta al puerto 465 (TLS implícito), que
+      // algunos proveedores de hosting bloquean de salida. 587 con
+      // STARTTLS suele estar permitido con más frecuencia.
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
       auth: {
         user: this.usuarioGmail,
         pass: this.contrasenaApp,
