@@ -30,7 +30,9 @@ services:
       # FALLIDA (no tumba el backend). Pásalas por tu .env o exportadas
       # en el shell antes de `docker compose up`.
       GMAIL_USER: ${GMAIL_USER:-}
-      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
+      GMAIL_OAUTH_CLIENT_ID: ${GMAIL_OAUTH_CLIENT_ID:-}
+      GMAIL_OAUTH_CLIENT_SECRET: ${GMAIL_OAUTH_CLIENT_SECRET:-}
+      GMAIL_REFRESH_TOKEN: ${GMAIL_REFRESH_TOKEN:-}
       # "Continuar con Google": Client ID de OAuth (ver .env.example). Sin él,
       # el acceso con Google responde 503 y el resto de la app funciona igual.
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
