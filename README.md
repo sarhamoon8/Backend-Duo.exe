@@ -110,7 +110,8 @@ Las migraciones de Prisma se aplican solas al arrancar el contenedor del backend
 | `JWT_SECRET` | Secreto para firmar/verificar los JWT. **Cambiar en cualquier entorno que no sea desarrollo local.** |
 | `PORT` | Puerto HTTP de la API (opcional, por defecto `3000`). |
 | `GMAIL_USER` | Cuenta de Gmail dedicada al proyecto que envía las notificaciones por correo (RF-05). Sin ella, el correo simplemente no se envía y queda registrado como `FALLIDA`; no tumba el backend. |
-| `GMAIL_APP_PASSWORD` | "Contraseña de aplicación" de esa cuenta (no la contraseña normal) — se genera en `myaccount.google.com/apppasswords` tras activar verificación en dos pasos. |
+| `GMAIL_OAUTH_CLIENT_ID` / `GMAIL_OAUTH_CLIENT_SECRET` | Credenciales de un cliente OAuth "Aplicación web" dedicado a enviar correo con la API de Gmail (HTTPS, no SMTP — ver `.env.example`). Distinto del cliente de `GOOGLE_CLIENT_ID` usado para el login. |
+| `GMAIL_REFRESH_TOKEN` | Refresh token de esa cuenta para el scope `gmail.send`, generado una vez en OAuth Playground (ver `.env.example`). |
 
 Ver [.env.example](./.env.example).
 

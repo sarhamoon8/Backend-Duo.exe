@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsuariosModule } from '../usuarios/usuarios.module';
 import { NotificacionController } from './infrastructure/http/notificacion.controller';
 import { PrismaNotificacionRepository } from './infrastructure/persistence/prisma-notificacion.repository';
-import { GmailSmtpProvider } from './infrastructure/email/gmail-smtp.provider';
+import { GmailApiProvider } from './infrastructure/email/gmail-api.provider';
 import { NOTIFICACION_REPOSITORY } from './domain/notificacion.repository';
 import { EMAIL_PROVIDER } from './domain/email-provider';
 import { EnviarNotificacionUseCase } from './application/use-cases/enviar-notificacion.use-case';
@@ -21,7 +21,7 @@ import { MarcarNotificacionLeidaUseCase } from './application/use-cases/marcar-n
       provide: NOTIFICACION_REPOSITORY,
       useClass: PrismaNotificacionRepository,
     },
-    { provide: EMAIL_PROVIDER, useClass: GmailSmtpProvider },
+    { provide: EMAIL_PROVIDER, useClass: GmailApiProvider },
   ],
   // TurnosModule la importa para notificar al crear/cancelar/avanzar un
   // turno y al reasignar desde la lista de espera (RF-05).
