@@ -104,6 +104,10 @@ describe('PrismaReservaRepository (integración)', () => {
       cantidadReservada: 1,
       fechaExpiracion,
     });
+    // fechaSolicitud tiene precisión de milisegundos: sin esta pausa, en
+    // runners rápidos las dos reservas pueden quedar con el mismo
+    // timestamp y el orden "más reciente primero" deja de ser determinista.
+    await new Promise((resolve) => setTimeout(resolve, 5));
     const segunda = await repo.crear({
       usuarioId,
       puntoId,

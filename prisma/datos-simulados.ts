@@ -43,15 +43,89 @@ export interface SedeSimulada {
   nombreSede: string;
   direccion: string;
   ciudad: string;
+  zona: string;
   telefonoContacto: string;
   capacidadAtencion: number;
   ventanillas: string[];
 }
 
 export const SEDES_SIMULADAS: SedeSimulada[] = [
-  { nombreSede: 'Sede Fusagasugá', direccion: 'Cra 8 # 10-45', ciudad: 'Fusagasugá', telefonoContacto: '3011234567', capacidadAtencion: 80, ventanillas: ['M1', 'M2', 'M3'] },
-  { nombreSede: 'Sede Chapinero', direccion: 'Cra 13 # 53-44', ciudad: 'Bogotá D. C.', telefonoContacto: '3012345678', capacidadAtencion: 60, ventanillas: ['M1', 'M2'] },
-  { nombreSede: 'Sede Galerías', direccion: 'Calle 53B # 24-18', ciudad: 'Bogotá D. C.', telefonoContacto: '3023456789', capacidadAtencion: 45, ventanillas: ['M1', 'M2'] },
+  { nombreSede: 'Sede Fusagasugá', direccion: 'Cra 8 # 10-45', ciudad: 'Fusagasugá', zona: 'Centro', telefonoContacto: '3011234567', capacidadAtencion: 80, ventanillas: ['M1', 'M2', 'M3'] },
+  { nombreSede: 'Sede Chapinero', direccion: 'Cra 13 # 53-44', ciudad: 'Bogotá D. C.', zona: 'Chapinero', telefonoContacto: '3012345678', capacidadAtencion: 60, ventanillas: ['M1', 'M2'] },
+  { nombreSede: 'Sede Galerías', direccion: 'Calle 53B # 24-18', ciudad: 'Bogotá D. C.', zona: 'Teusaquillo', telefonoContacto: '3023456789', capacidadAtencion: 45, ventanillas: ['M1', 'M2'] },
+  { nombreSede: 'Sede Suba', direccion: 'Av. Suba # 115-58', ciudad: 'Bogotá D. C.', zona: 'Suba', telefonoContacto: '3034567890', capacidadAtencion: 70, ventanillas: ['M1', 'M2'] },
+  { nombreSede: 'Sede Kennedy', direccion: 'Av. Primero de Mayo # 78-30', ciudad: 'Bogotá D. C.', zona: 'Kennedy', telefonoContacto: '3045678901', capacidadAtencion: 75, ventanillas: ['M1', 'M2', 'M3'] },
+  { nombreSede: 'Sede Usaquén', direccion: 'Cra 7 # 119-14', ciudad: 'Bogotá D. C.', zona: 'Usaquén', telefonoContacto: '3056789012', capacidadAtencion: 50, ventanillas: ['M1', 'M2'] },
+  { nombreSede: 'Sede Soacha Centro', direccion: 'Cra 7 # 13-20', ciudad: 'Soacha', zona: 'Centro', telefonoContacto: '3067890123', capacidadAtencion: 55, ventanillas: ['M1', 'M2'] },
+  { nombreSede: 'Sede El Poblado', direccion: 'Cra 43A # 7-50', ciudad: 'Medellín', zona: 'El Poblado', telefonoContacto: '3078901234', capacidadAtencion: 65, ventanillas: ['M1', 'M2'] },
+  { nombreSede: 'Sede Laureles', direccion: 'Circular 4 # 70-15', ciudad: 'Medellín', zona: 'Laureles', telefonoContacto: '3089012345', capacidadAtencion: 55, ventanillas: ['M1', 'M2'] },
+  { nombreSede: 'Sede San Fernando', direccion: 'Av. 4 Norte # 24-10', ciudad: 'Cali', zona: 'San Fernando', telefonoContacto: '3090123456', capacidadAtencion: 60, ventanillas: ['M1', 'M2'] },
+  { nombreSede: 'Sede Granada', direccion: 'Av. 9 Norte # 14-35', ciudad: 'Cali', zona: 'Granada', telefonoContacto: '3101234567', capacidadAtencion: 45, ventanillas: ['M1', 'M2'] },
+  { nombreSede: 'Sede Norte Barranquilla', direccion: 'Cra 53 # 79-120', ciudad: 'Barranquilla', zona: 'Norte', telefonoContacto: '3112345678', capacidadAtencion: 60, ventanillas: ['M1', 'M2'] },
+];
+
+/**
+ * Otras entidades de salud (sus sedes son ficticias) para que el paciente pueda
+ * elegir entre varios centros médicos por ciudad y zona.
+ */
+export interface EntidadSimulada {
+  nombre: string;
+  /** Prefijo de los códigos de servicio (deben ser únicos entre entidades). */
+  prefijo: string;
+  sedes: SedeSimulada[];
+}
+
+export const ENTIDADES_ADICIONALES_SIMULADAS: EntidadSimulada[] = [
+  {
+    nombre: 'Sanitas EPS',
+    prefijo: 'SAN',
+    sedes: [
+    { nombreSede: 'Sede Sanitas Chapinero', direccion: 'Cra 14 # 67-20', ciudad: 'Bogotá D. C.', zona: 'Chapinero', telefonoContacto: '3121110001', capacidadAtencion: 50, ventanillas: ['M1', 'M2'] },
+    { nombreSede: 'Sede Sanitas Suba', direccion: 'Cll 145 # 91-19', ciudad: 'Bogotá D. C.', zona: 'Suba', telefonoContacto: '3121110002', capacidadAtencion: 45, ventanillas: ['M1', 'M2'] },
+    { nombreSede: 'Sede Sanitas Kennedy', direccion: 'Cll 38 Sur # 78H-15', ciudad: 'Bogotá D. C.', zona: 'Kennedy', telefonoContacto: '3121110003', capacidadAtencion: 45, ventanillas: ['M1'] },
+    { nombreSede: 'Sede Sanitas El Poblado', direccion: 'Cll 10 # 38-24', ciudad: 'Medellín', zona: 'El Poblado', telefonoContacto: '3121110004', capacidadAtencion: 40, ventanillas: ['M1', 'M2'] },
+    ],
+  },
+  {
+    nombre: 'Compensar EPS',
+    prefijo: 'COM',
+    sedes: [
+    { nombreSede: 'Centro Compensar Teusaquillo', direccion: 'Av. 68 # 49A-47', ciudad: 'Bogotá D. C.', zona: 'Teusaquillo', telefonoContacto: '3132220001', capacidadAtencion: 90, ventanillas: ['M1', 'M2', 'M3'] },
+    { nombreSede: 'Centro Compensar Usaquén', direccion: 'Cra 15 # 118-30', ciudad: 'Bogotá D. C.', zona: 'Usaquén', telefonoContacto: '3132220002', capacidadAtencion: 55, ventanillas: ['M1', 'M2'] },
+    { nombreSede: 'Centro Compensar Soacha', direccion: 'Cll 13 # 9-40', ciudad: 'Soacha', zona: 'Centro', telefonoContacto: '3132220003', capacidadAtencion: 40, ventanillas: ['M1'] },
+    { nombreSede: 'Centro Compensar Fusagasugá', direccion: 'Cll 6 # 6-52', ciudad: 'Fusagasugá', zona: 'Centro', telefonoContacto: '3132220004', capacidadAtencion: 35, ventanillas: ['M1'] },
+    ],
+  },
+  {
+    nombre: 'Sura EPS',
+    prefijo: 'SUR',
+    sedes: [
+    { nombreSede: 'Sede Sura Laureles', direccion: 'Cll 33 # 76-20', ciudad: 'Medellín', zona: 'Laureles', telefonoContacto: '3143330001', capacidadAtencion: 60, ventanillas: ['M1', 'M2'] },
+    { nombreSede: 'Sede Sura El Poblado', direccion: 'Cra 48 # 10-45', ciudad: 'Medellín', zona: 'El Poblado', telefonoContacto: '3143330002', capacidadAtencion: 60, ventanillas: ['M1', 'M2'] },
+    { nombreSede: 'Sede Sura San Fernando', direccion: 'Cll 5 # 38-10', ciudad: 'Cali', zona: 'San Fernando', telefonoContacto: '3143330003', capacidadAtencion: 45, ventanillas: ['M1', 'M2'] },
+    { nombreSede: 'Sede Sura Chapinero', direccion: 'Cll 72 # 10-07', ciudad: 'Bogotá D. C.', zona: 'Chapinero', telefonoContacto: '3143330004', capacidadAtencion: 50, ventanillas: ['M1', 'M2'] },
+    ],
+  },
+  {
+    nombre: 'Famisanar EPS',
+    prefijo: 'FAM',
+    sedes: [
+    { nombreSede: 'Sede Famisanar Kennedy', direccion: 'Cll 8 Sur # 80-45', ciudad: 'Bogotá D. C.', zona: 'Kennedy', telefonoContacto: '3154440001', capacidadAtencion: 55, ventanillas: ['M1', 'M2'] },
+    { nombreSede: 'Sede Famisanar Suba', direccion: 'Cra 92 # 146-20', ciudad: 'Bogotá D. C.', zona: 'Suba', telefonoContacto: '3154440002', capacidadAtencion: 50, ventanillas: ['M1', 'M2'] },
+    { nombreSede: 'Sede Famisanar Granada', direccion: 'Av. 8 Norte # 20-12', ciudad: 'Cali', zona: 'Granada', telefonoContacto: '3154440003', capacidadAtencion: 40, ventanillas: ['M1'] },
+    { nombreSede: 'Sede Famisanar Barranquilla', direccion: 'Cll 74 # 54-30', ciudad: 'Barranquilla', zona: 'Norte', telefonoContacto: '3154440004', capacidadAtencion: 45, ventanillas: ['M1', 'M2'] },
+    ],
+  },
+  {
+    nombre: 'Salud Total EPS',
+    prefijo: 'SAT',
+    sedes: [
+    { nombreSede: 'Sede Salud Total Usaquén', direccion: 'Cll 134 # 7B-83', ciudad: 'Bogotá D. C.', zona: 'Usaquén', telefonoContacto: '3165550001', capacidadAtencion: 45, ventanillas: ['M1', 'M2'] },
+    { nombreSede: 'Sede Salud Total Teusaquillo', direccion: 'Cra 24 # 39-20', ciudad: 'Bogotá D. C.', zona: 'Teusaquillo', telefonoContacto: '3165550002', capacidadAtencion: 40, ventanillas: ['M1'] },
+    { nombreSede: 'Sede Salud Total Granada', direccion: 'Cll 17 Norte # 6-30', ciudad: 'Cali', zona: 'Granada', telefonoContacto: '3165550003', capacidadAtencion: 40, ventanillas: ['M1', 'M2'] },
+    { nombreSede: 'Sede Salud Total Laureles', direccion: 'Cra 70 # 44-15', ciudad: 'Medellín', zona: 'Laureles', telefonoContacto: '3165550004', capacidadAtencion: 40, ventanillas: ['M1'] },
+    ],
+  },
 ];
 
 /**

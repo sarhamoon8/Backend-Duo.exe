@@ -6,6 +6,7 @@ export class PuntoDispensacionResponseDto {
   nombreSede: string;
   direccion: string;
   ciudad: string;
+  zona: string | null;
   telefonoContacto: string | null;
   capacidadAtencion: number;
 
@@ -18,6 +19,7 @@ export class PuntoDispensacionResponseDto {
     dto.nombreSede = punto.nombreSede;
     dto.direccion = punto.direccion;
     dto.ciudad = punto.ciudad;
+    dto.zona = punto.zona;
     dto.telefonoContacto = punto.telefonoContacto;
     dto.capacidadAtencion = punto.capacidadAtencion;
     return dto;

@@ -13,6 +13,7 @@ export class PuntoDispensacionMapper {
       puntoPrisma.ciudad,
       puntoPrisma.telefonoContacto,
       puntoPrisma.capacidadAtencion,
+      puntoPrisma.zona,
     );
   }
 }
