@@ -122,6 +122,7 @@ model PuntoDispensacion {
   nombreSede        String
   direccion         String
   ciudad            String
+  zona              String?
   telefonoContacto  String?
   capacidadAtencion Int
   ventanillas       Ventanilla[]

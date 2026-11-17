@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EmailProvider } from '../../../notificaciones/domain/email-provider';
 import { Rol } from '../../../usuarios/domain/rol.enum';
@@ -107,6 +108,23 @@ describe('SolicitarRecuperacionUseCase', () => {
     expect(enlaceEnviado()).toMatch(
       /^http:\/\/localhost:3001\/restablecer-contrasena\?token=/,
     );
+  });
+
+  it('registra el enlace en el log solo si RECUPERACION_REGISTRAR_ENLACE es "true"', async () => {
+    entorno = {
+      FRONTEND_URL: 'https://filacero.test/',
+      RECUPERACION_REGISTRAR_ENLACE: 'true',
+    };
+    const logSpy = jest
+      .spyOn(Logger.prototype, 'warn')
+      .mockImplementation(() => undefined);
+
+    await useCase.ejecutar('ana@example.com', AHORA);
+
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('ana@example.com'),
+    );
+    logSpy.mockRestore();
   });
 
   it('cada solicitud genera un token distinto', async () => {

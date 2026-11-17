@@ -15,6 +15,10 @@ export class CrearPuntoDispensacionDto {
 
   @IsOptional()
   @IsString()
+  zona?: string;
+
+  @IsOptional()
+  @IsString()
   telefonoContacto?: string;
 
   @IsInt()

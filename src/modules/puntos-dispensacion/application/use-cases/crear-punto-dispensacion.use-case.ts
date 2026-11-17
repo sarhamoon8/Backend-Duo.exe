@@ -28,6 +28,7 @@ export class CrearPuntoDispensacionUseCase {
       nombreSede: dto.nombreSede,
       direccion: dto.direccion,
       ciudad: dto.ciudad,
+      zona: dto.zona,
       telefonoContacto: dto.telefonoContacto,
       capacidadAtencion: dto.capacidadAtencion,
     });

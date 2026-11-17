@@ -20,6 +20,7 @@ export class PrismaPuntoDispensacionRepository
         nombreSede: punto.nombreSede,
         direccion: punto.direccion,
         ciudad: punto.ciudad,
+        zona: punto.zona,
         telefonoContacto: punto.telefonoContacto,
         capacidadAtencion: punto.capacidadAtencion,
       },

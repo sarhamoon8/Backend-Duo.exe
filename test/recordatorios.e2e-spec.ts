@@ -14,7 +14,7 @@ describe('Recordatorios de medicamentos (e2e)', () => {
   let prisma: PrismaService;
 
   const sufijo = Date.now().toString();
-  const passwordDemo = 'clave123456';
+  const passwordDemo = 'Clave123456!';
   const emailPaciente = `paciente.record.e2e.${sufijo}@example.com`;
   const emailOtro = `otro.record.e2e.${sufijo}@example.com`;
 
@@ -126,6 +126,7 @@ describe('Recordatorios de medicamentos (e2e)', () => {
         apellidos: 'Record E2E',
         email: emailPaciente,
         password: passwordDemo,
+        aceptaTerminos: true,
       });
     tokenPaciente = registroPaciente.body.accessToken;
 

@@ -34,6 +34,7 @@ const dto: CrearPuntoDispensacionDto = {
   nombreSede: 'Sede Norte',
   direccion: 'Calle 1',
   ciudad: 'Bogotá',
+  zona: 'Chapinero',
   capacidadAtencion: 10,
 };
 
@@ -76,6 +77,7 @@ describe('CrearPuntoDispensacionUseCase', () => {
       nombreSede: dto.nombreSede,
       direccion: dto.direccion,
       ciudad: dto.ciudad,
+      zona: dto.zona,
       telefonoContacto: dto.telefonoContacto,
       capacidadAtencion: dto.capacidadAtencion,
     });
