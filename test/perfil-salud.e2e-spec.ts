@@ -13,7 +13,7 @@ describe('Perfil de salud (e2e)', () => {
   let prisma: PrismaService;
 
   const sufijo = Date.now().toString();
-  const passwordDemo = 'clave123456';
+  const passwordDemo = 'Clave123456!';
   const emailPaciente = `paciente.perfil.e2e.${sufijo}@example.com`;
 
   let tokenPaciente: string;
@@ -45,6 +45,7 @@ describe('Perfil de salud (e2e)', () => {
         apellidos: 'Perfil E2E',
         email: emailPaciente,
         password: passwordDemo,
+        aceptaTerminos: true,
       });
     tokenPaciente = registroPaciente.body.accessToken;
   });
