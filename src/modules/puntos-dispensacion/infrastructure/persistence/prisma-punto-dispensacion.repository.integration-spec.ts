@@ -43,7 +43,23 @@ describe('PrismaPuntoDispensacionRepository (integración)', () => {
     const encontrado = await repo.buscarPorId(creado.id);
 
     expect(encontrado?.telefonoContacto).toBeNull();
+    expect(encontrado?.zona).toBeNull();
     expect(encontrado?.capacidadAtencion).toBe(10);
+  });
+
+  it('guarda y devuelve la zona o barrio del punto', async () => {
+    const creado = await repo.crear({
+      entidadId: entidadAId,
+      nombreSede: `Sede con zona ${sufijo}`,
+      direccion: 'Calle 2',
+      ciudad: 'Bogotá',
+      zona: 'Chapinero',
+      capacidadAtencion: 10,
+    });
+
+    const encontrado = await repo.buscarPorId(creado.id);
+
+    expect(encontrado?.zona).toBe('Chapinero');
   });
 
   it('listarPorEntidad solo devuelve los puntos de esa entidad', async () => {

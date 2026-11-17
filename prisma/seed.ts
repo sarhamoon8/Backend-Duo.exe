@@ -8,6 +8,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import {
+  ENTIDADES_ADICIONALES_SIMULADAS,
   FUNCIONARIOS_SIMULADOS,
   MEDICAMENTOS_SIMULADOS,
   PACIENTES_SIMULADOS,
@@ -149,12 +150,19 @@ async function main() {
     let sedeDb = await prisma.puntoDispensacion.findFirst({
       where: { entidadId: entidad.id, nombreSede: sede.nombreSede },
     });
+    if (sedeDb && sedeDb.zona !== sede.zona) {
+      sedeDb = await prisma.puntoDispensacion.update({
+        where: { id: sedeDb.id },
+        data: { zona: sede.zona },
+      });
+    }
     sedeDb ??= await prisma.puntoDispensacion.create({
       data: {
         entidadId: entidad.id,
         nombreSede: sede.nombreSede,
         direccion: sede.direccion,
         ciudad: sede.ciudad,
+        zona: sede.zona,
         telefonoContacto: sede.telefonoContacto,
         capacidadAtencion: sede.capacidadAtencion,
       },
@@ -168,6 +176,50 @@ async function main() {
         await prisma.ventanilla.create({
           data: { puntoId: sedeDb.id, numeroModulo: modulo },
         });
+      }
+    }
+  }
+
+  // Otras entidades de salud con sus sedes en varias ciudades y zonas.
+  for (const otra of ENTIDADES_ADICIONALES_SIMULADAS) {
+    let entidadOtra = await prisma.entidadMedica.findFirst({
+      where: { nombre: otra.nombre },
+    });
+    entidadOtra ??= await prisma.entidadMedica.create({
+      data: { nombre: otra.nombre },
+    });
+    for (const servicio of SERVICIOS_EXTRA) {
+      const codigoServicio = `${otra.prefijo}-${servicio.codigoServicio}`;
+      await prisma.servicio.upsert({
+        where: { codigoServicio },
+        update: {},
+        create: { ...servicio, codigoServicio, entidadId: entidadOtra.id },
+      });
+    }
+    for (const sede of otra.sedes) {
+      let sedeDb = await prisma.puntoDispensacion.findFirst({
+        where: { entidadId: entidadOtra.id, nombreSede: sede.nombreSede },
+      });
+      sedeDb ??= await prisma.puntoDispensacion.create({
+        data: {
+          entidadId: entidadOtra.id,
+          nombreSede: sede.nombreSede,
+          direccion: sede.direccion,
+          ciudad: sede.ciudad,
+          zona: sede.zona,
+          telefonoContacto: sede.telefonoContacto,
+          capacidadAtencion: sede.capacidadAtencion,
+        },
+      });
+      for (const modulo of sede.ventanillas) {
+        const existente = await prisma.ventanilla.findFirst({
+          where: { puntoId: sedeDb.id, numeroModulo: modulo },
+        });
+        if (!existente) {
+          await prisma.ventanilla.create({
+            data: { puntoId: sedeDb.id, numeroModulo: modulo },
+          });
+        }
       }
     }
   }

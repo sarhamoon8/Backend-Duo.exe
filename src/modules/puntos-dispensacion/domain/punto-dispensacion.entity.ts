@@ -7,5 +7,6 @@ export class PuntoDispensacion {
     public readonly ciudad: string,
     public readonly telefonoContacto: string | null,
     public readonly capacidadAtencion: number,
+    public readonly zona: string | null = null,
   ) {}
 }

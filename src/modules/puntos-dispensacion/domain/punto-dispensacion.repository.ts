@@ -5,6 +5,7 @@ export interface NuevoPuntoDispensacion {
   nombreSede: string;
   direccion: string;
   ciudad: string;
+  zona?: string | null;
   telefonoContacto?: string | null;
   capacidadAtencion: number;
 }
